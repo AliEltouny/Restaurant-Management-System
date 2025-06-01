@@ -1,0 +1,4293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Restaurant System - Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <style>
+        :root {
+            --primary-color: #36b9cc; /* Different color scheme for staff */
+            --secondary-color: #f8f9fc;
+            --accent-color: #dddfeb;
+            --text-color: #858796;
+            --dark-text: #5a5c69;
+            --white: #fff;
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 80px;
+            --transition-speed: 0.3s;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #4e73df; /* Swapped with primary */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            color: var(--dark-text);
+        }
+
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--white);
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: all var(--transition-speed) ease;
+            height: 100vh;
+            position: fixed;
+            z-index: 100;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu h4 {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-color);
+            text-transform: uppercase;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            position: relative;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--dark-text);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .sidebar-menu a.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .sidebar-header h3 {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-menu h4,
+        .sidebar.collapsed .sidebar-menu a span {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-menu a {
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+        .sidebar.collapsed .sidebar-menu i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-speed) ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content.collapsed {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .topbar {
+            height: 70px;
+            background-color: #fff;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--dark-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .content {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+            color: var(--dark-text);
+        }
+
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+        }
+
+        .breadcrumb li {
+            margin-right: 10px;
+            color: var(--text-color);
+        }
+
+        .breadcrumb li:not(:last-child)::after {
+            content: '/';
+            margin-left: 10px;
+        }
+
+        .breadcrumb li a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .card-header h3 {
+            font-size: 1rem;
+            color: var(--dark-text);
+        }
+
+        .card-body {
+            margin-bottom: 15px;
+        }
+
+        .card-footer {
+            text-align: right;
+        }
+
+        .card-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+
+        .bg-success {
+            background-color: var(--success-color);
+        }
+
+        .bg-warning {
+            background-color: var(--warning-color);
+        }
+
+        .bg-info {
+            background-color: var(--info-color);
+        }
+
+        .bg-danger {
+            background-color: var(--danger-color);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-text);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        /* Sections */
+        .section {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .section-header h2 {
+            font-size: 1.3rem;
+            color: var(--dark-text);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #fff;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            box-shadow: 0 -0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        }
+
+        /* Page Content */
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(54, 185, 204, 0.25);
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2c9faf;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #17a673;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #be2617;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #dda20a;
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #2e59d9;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .text-success {
+            color: var(--success-color);
+        }
+
+        .text-danger {
+            color: var(--danger-color);
+        }
+
+        .text-warning {
+            color: var(--warning-color);
+        }
+
+        .text-info {
+            color: var(--info-color);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .table th {
+            background-color: var(--secondary-color);
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .table tr:hover {
+            background-color: rgba(54, 185, 204, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background-color: rgba(54, 185, 204, 0.1);
+            color: var(--primary-color);
+        }
+
+        .badge-success {
+            background-color: rgba(28, 200, 138, 0.1);
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background-color: rgba(246, 194, 62, 0.1);
+            color: var(--warning-color);
+        }
+
+        .badge-danger {
+            background-color: rgba(231, 74, 59, 0.1);
+            color: var(--danger-color);
+        }
+
+        .badge-info {
+            background-color: rgba(78, 115, 223, 0.1);
+            color: var(--info-color);
+        }
+        
+        /* Search Input */
+        #menu-search {
+            max-width: 300px;
+            margin-left: auto;
+        }
+
+        /* Menu Items Grid */
+        .menu-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .menu-item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .menu-item-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .menu-item-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            outline: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-dialog {
+            max-width: 600px;
+            max-height: 90vh; /* Limits modal height to 90% of viewport */
+            overflow-y: auto; /* Makes the modal scrollable */
+            margin: 30px auto;
+            position: relative;
+            width: auto;
+        }
+
+        .modal-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-height: 90vh; /* Ensures content respects the modal height */
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            outline: 0;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .modal-header h5 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .modal-body {
+            position: relative;
+            flex: 1 1 auto;
+            padding: 20px;
+            overflow-y: auto; /* Makes just the body scrollable if needed */
+            max-height: calc(90vh - 150px); /* Accounts for header/footer height */            
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 15px 20px;
+            border-top: 1px solid var(--accent-color);
+        }
+
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #000;
+            text-shadow: 0 1px 0 #fff;
+            opacity: 0.5;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            opacity: 0.75;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs .nav-item {
+            margin-bottom: -1px;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 10px 15px;
+            border: 1px solid transparent;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            color: var(--dark-text);
+            text-decoration: none;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: var(--accent-color);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: #fff;
+            border-color: var(--accent-color) var(--accent-color) #fff;
+        }
+
+        .tab-content {
+            padding: 15px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            .sidebar-header h3,
+            .sidebar-menu h4,
+            .sidebar-menu a span {
+                display: none;
+            }
+            .sidebar-menu a {
+                justify-content: center;
+                padding: 12px 0;
+            }
+            .sidebar-menu i {
+                margin-right: 0;
+                font-size: 1.2rem;
+            }
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .breadcrumb {
+                margin-top: 10px;
+            }
+        }
+
+        /* Layout for tables section */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .table-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-available {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-occupied {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-reserved {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cleaning {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .table-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Add this to your existing CSS */
+        .reservation-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .reservation-filters input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            color: var(--dark-text);
+        }
+        
+        .reservation-filters select {
+            padding: 8px 12px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            color: var(--dark-text);
+            min-width: 150px;
+        }
+        
+        .reservation-filters button {
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .reservation-filters button:hover {
+            background-color: #2c9faf;
+        }
+        
+        .reservation-search {
+            margin-left: auto;
+        }
+        
+        .reservation-search input {
+            padding: 8px 12px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        /* Waitlist styles */
+        .waitlist-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .waitlist-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .waitlist-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Section tabs */
+        .section-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .section-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .section-tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Restaurant Staff</h3>
+            </div>
+            <div class="sidebar-menu">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="/staff/dashboard" class="active" data-page="dashboard"><i class="fas fa-fw fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                    <li><a href="/staff/tables" data-page="tables"><i class="fas fa-fw fa-chair"></i> <span>Tables</span></a></li>
+                    <li><a href="/staff/orders" data-page="orders"><i class="fas fa-fw fa-utensils"></i> <span>Orders</span></a></li>
+                    <li><a href="/staff/reservations" data-page="reservations"><i class="fas fa-fw fa-calendar-alt"></i> <span>Reservations</span></a></li>
+                    <li><a href="/staff/waitlist" data-page="waitlist"><i class="fas fa-fw fa-list-ol"></i> <span>Waitlist</span></a></li>
+                    <li><a href="/staff/online-orders" data-page="online-orders"><i class="fas fa-fw fa-shopping-cart"></i> <span>Online Orders</span></a></li>
+                    <li><a href="/staff/menu" data-page="menu"><i class="fas fa-fw fa-book-open"></i> <span>Menu</span></a></li>
+                    <li><a href="/staff/profile" data-page="profile"><i class="fas fa-fw fa-user"></i> <span>Profile</span></a></li>
+                    <li><a href="#" id="logout-btn" onclick="logout(); return false;"><i class="fas fa-fw fa-sign-out-alt"></i><span>Logout</span></a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content" id="main-content">
+            <!-- Topbar -->
+            <nav class="topbar">
+                <button class="toggle-btn" id="toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="user-info">
+                    <img id="user-avatar" src="../images/placeholder.png" alt="User Avatar">
+                    <span id="username-display">Staff Member</span>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Dashboard Page -->
+                <div class="page-content active" id="dashboard-page">
+                    <div class="page-header">
+                        <h1>Staff Dashboard</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Dashboard</li>
+                        </ul>
+                    </div>
+
+                    <div class="dashboard-cards">
+                        <!-- Total Tables Card (now standalone) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Total Tables</h3>
+                                <div class="card-icon bg-info">
+                                    <i class="fas fa-table"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-number" id="total-tables">0</div>
+                                <div class="stat-label">All Tables</div>
+                            </div>
+                            <div class="card-footer">
+                                <a href="/staff/tables" class="text-info">Manage Tables</a>
+                            </div>
+                        </div>
+
+                        <!-- Available Tables Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Available Tables</h3>
+                                <div class="card-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-number" id="available-tables">0</div>
+                                <div class="stat-label">Available Now</div>
+                            </div>
+                        </div>
+
+                        <!-- Active Orders Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Active Orders</h3>
+                                <div class="card-icon bg-warning">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-number" id="active-orders">0</div>
+                                <div class="stat-label">Being Prepared</div>
+                            </div>
+                        </div>
+
+                        <!-- Waitlist Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Waitlist</h3>
+                                <div class="card-icon bg-info">
+                                    <i class="fas fa-list-ol"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-number" id="waitlist-count">0</div>
+                                <div class="stat-label">Parties Waiting</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header">
+                            <h2>Quick Actions</h2>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="quick-actions">
+                                    <button class="btn btn-primary" id="add-order-btn">
+                                        <i class="fas fa-plus"></i> Create New Order
+                                    </button>
+                                    <button class="btn btn-success" id="seat-customer-btn">
+                                        <i class="fas fa-chair"></i> Seat Customer
+                                    </button>
+                                    <button class="btn btn-info" id="add-waitlist-btn">
+                                        <i class="fas fa-user-plus"></i> Add to Waitlist
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header">
+                            <h2>Recent Orders</h2>
+                            <a href="/staff/orders" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table" id="recent-orders-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Order #</th>
+                                                <th>Table</th>
+                                                <th>Status</th>
+                                                <th>Amount</th>
+                                                <th>Time</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recent-orders-body">
+                                            <!-- Recent orders will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tables Page -->
+                <div class="page-content" id="tables-page">
+                    <div class="page-header">
+                        <h1>Table Management</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Tables</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-tabs">
+                        <div class="section-tab active" data-tab="all">All Tables</div>
+                        <div class="section-tab" data-tab="available">Available</div>
+                        <div class="section-tab" data-tab="occupied">Occupied</div>
+                        <div class="section-tab" data-tab="reserved">Reserved</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="tables-grid" id="tables-container">
+                            <!-- Tables will be loaded here dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Page -->
+                <div class="page-content" id="orders-page">
+                    <div class="page-header">
+                        <h1>Order Management</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Orders</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-tabs">
+                        <div class="section-tab active" data-tab="all">All Orders</div>
+                        <div class="section-tab" data-tab="pending">Pending</div>
+                        <div class="section-tab" data-tab="processing">Processing</div>
+                        <div class="section-tab" data-tab="completed">Completed</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Orders</h3>
+                                <button class="btn btn-primary" id="create-order-btn">
+                                    <i class="fas fa-plus"></i> New Order
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table" id="orders-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Order #</th>
+                                                <th>Table</th>
+                                                <th>Customer</th>
+                                                <th>Items</th>
+                                                <th>Status</th>
+                                                <th>Amount</th>
+                                                <th>Time</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="orders-table-body">
+                                            <!-- Orders will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reservations Page -->
+                <div class="page-content" id="reservations-page">
+                    <div class="page-header">
+                        <h1>Reservation Management</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Reservations</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-tabs">
+                        <div class="section-tab active" data-tab="all">All Reservations</div>
+                        <div class="section-tab" data-tab="confirmed">Confirmed</div>
+                        <div class="section-tab" data-tab="pending">Pending</div>
+                        <div class="section-tab" data-tab="cancelled">Cancelled</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Reservations</h3>
+                                <div class="reservation-filters">
+                                    <input type="date" id="reservation-date-filter">
+                                    <button id="apply-filters-btn" class="btn btn-primary">Apply</button>
+                                    <div class="reservation-search">
+                                        <input type="text" class="form-control" id="reservation-search" placeholder="Search reservations...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table" id="reservations-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Date</th>
+                                                <th>Time</th>
+                                                <th>Party Size</th>
+                                                <th>Table</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reservations-table-body">
+                                            <!-- Reservations will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Waitlist Page -->
+                <div class="page-content" id="waitlist-page">
+                    <div class="page-header">
+                        <h1>Waitlist Management</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Waitlist</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Current Waitlist</h3>
+                                <button class="btn btn-primary" id="add-party-btn">
+                                    <i class="fas fa-user-plus"></i> Add Party
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="waitlist-container">
+                                    <!-- Waitlist items will be loaded here -->
+                                    <div class="waitlist-item">
+                                        <div class="waitlist-header">
+                                            <h4>Anna Gutiérrez - Party of 4</h4>
+                                            <div class="waitlist-actions">
+                                                <button class="btn btn-success btn-sm">Seat Now</button>
+                                                <button class="btn btn-danger btn-sm">Remove</button>
+                                            </div>
+                                        </div>
+                                        <p>Wait time: 22 minutes</p>
+                                        <p>Notes: High chair needed</p>
+                                    </div>
+                                    <div class="waitlist-item">
+                                        <div class="waitlist-header">
+                                            <h4>Dorinel Atchison - Party of 2</h4>
+                                            <div class="waitlist-actions">
+                                                <button class="btn btn-success btn-sm">Seat Now</button>
+                                                <button class="btn btn-danger btn-sm">Remove</button>
+                                            </div>
+                                        </div>
+                                        <p>Wait time: 15 minutes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Online Orders Page -->
+                <div class="page-content" id="online-orders-page">
+                    <div class="page-header">
+                        <h1>Online Order Management</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Online Orders</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-tabs">
+                        <div class="section-tab active" data-tab="all">All Orders</div>
+                        <div class="section-tab" data-tab="pending">Pending</div>
+                        <div class="section-tab" data-tab="processing">Processing</div>
+                        <div class="section-tab" data-tab="completed">Completed</div>
+                        <div class="section-tab" data-tab="cancelled">Cancelled</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Online Orders</h3>
+                                <div class="reservation-filters">
+                                    <input type="date" id="online-order-date-filter">
+                                    <button id="apply-online-order-filters-btn" class="btn btn-primary">Apply</button>
+                                    <div class="reservation-search">
+                                        <input type="text" class="form-control" id="online-order-search" placeholder="Search orders...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table" id="online-orders-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Order #</th>
+                                                <th>Customer</th>
+                                                <th>Items</th>
+                                                <th>Total</th>
+                                                <th>Payment</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="online-orders-table-body">
+                                            <!-- Online orders will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Page -->
+                <div class="page-content" id="menu-page">
+                    <div class="page-header">
+                        <h1>Menu</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Menu</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Menu Items</h3>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <input type="text" class="form-control" id="menu-search" placeholder="Search menu items...">
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="section-tabs">
+                                    <div class="section-tab active" data-tab="all">All Products</div>
+                                    <!-- Categories will be loaded dynamically here -->
+                                </div>
+                                <div class="menu-items-grid" id="menu-items-container">
+                                    <!-- Menu items will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Page -->
+                <div class="page-content" id="profile-page">
+                    <div class="page-header">
+                        <h1>Profile</h1>
+                        <ul class="breadcrumb">
+                            <li><a href="/staff/dashboard">Home</a></li>
+                            <li>Profile</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>User Profile</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 text-center">
+                                        <img id="profile-image-preview" src="../images/placeholder.png" alt="Profile Image" class="img-thumbnail mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                        <div class="form-group">
+                                            <label for="profile-image-url">Image URL</label>
+                                            <input type="text" class="form-control" id="profile-image-url" placeholder="Enter image URL">
+                                            <small class="form-text text-muted">Paste a direct image URL</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <form id="profile-form">
+                                            <div class="form-group">
+                                                <label for="profile-username">Username</label>
+                                                <input type="text" class="form-control" id="profile-username" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="profile-email">Email</label>
+                                                <input type="email" class="form-control" id="profile-email" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="profile-role">Role</label>
+                                                <input type="text" class="form-control" id="profile-role" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="profile-current-password">Current Password (leave blank to keep unchanged)</label>
+                                                <input type="password" class="form-control" id="profile-current-password">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="profile-new-password">New Password</label>
+                                                <input type="password" class="form-control" id="profile-new-password">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="profile-confirm-password">Confirm New Password</label>
+                                                <input type="password" class="form-control" id="profile-confirm-password">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                © 2023 | All rights reserved - Restaurant Management System<br>
+                Staff Portal v2.0.0
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Order Modal -->
+    <div class="modal" id="order-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="order-modal-title">Create New Order</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="order-form">
+                        <input type="hidden" id="order-id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="order-table">Table</label>
+                                    <select class="form-control" id="order-table" required>
+                                        <!-- Tables will be loaded here -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="order-status">Status</label>
+                                    <select class="form-control" id="order-status" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="processing">Processing</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="order-notes">Notes</label>
+                            <textarea class="form-control" id="order-notes" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5>Order Items</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <select class="form-control" id="order-product">
+                                            <!-- Products will be loaded here -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" id="order-quantity" min="1" value="1">
+                                    </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-primary" id="add-order-item-btn">Add Item</button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table" id="order-items-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="order-items-body">
+                                        <!-- Order items will be added here -->
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="3">Total Amount</th>
+                                            <th id="order-total-amount">$0.00</th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-order-btn">Save Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Waitlist Modal -->
+<div class="modal" id="waitlist-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Party to Waitlist</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="waitlist-form">
+                    <div class="form-group">
+                        <label for="party-name">Name</label>
+                        <input type="text" class="form-control" id="party-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="party-size">Party Size</label>
+                        <input type="number" class="form-control" id="party-size" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="party-phone">Phone Number</label>
+                        <input type="tel" class="form-control" id="party-phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="party-notes">Special Requests</label>
+                        <textarea class="form-control" id="party-notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-waitlist-btn">Add to Waitlist</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seat Customer Modal -->
+<div class="modal" id="seat-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seat Customer</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="seat-form">
+                    <div class="form-group">
+                        <label for="select-party">Select Party</label>
+                        <select class="form-control" id="select-party" required>
+                            <!-- Waitlist parties will be loaded here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="select-table">Select Table</label>
+                        <select class="form-control" id="select-table" required>
+                            <!-- Available tables will be loaded here -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-seat-btn">Seat Party</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Online Order Modal -->
+<div class="modal" id="online-order-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="online-order-modal-title">Online Order Details</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Order Number:</strong> <span id="online-order-number"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Order Date:</strong> <span id="online-order-date"></span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Customer:</strong> <span id="online-order-customer"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Payment Method:</strong> <span id="online-order-payment"></span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>Delivery Address:</strong> <span id="online-order-address"></span>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Order Items</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="online-order-items-body">
+                                    <!-- Order items will be loaded here -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3">Subtotal</th>
+                                        <th id="online-order-subtotal">$0.00</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Delivery Fee</th>
+                                        <th id="online-order-delivery">$0.00</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Discount</th>
+                                        <th id="online-order-discount">$0.00</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Tax</th>
+                                        <th id="online-order-tax">$0.00</th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Total</th>
+                                        <th id="online-order-total">$0.00</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="online-order-status">Status</label>
+                    <select class="form-control" id="online-order-status">
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="online-order-notes">Notes</label>
+                    <textarea class="form-control" id="online-order-notes" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-online-order-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+    // Global variables
+    let currentUser = null;
+    let currentPage = 'dashboard';
+    let allMenuItems = [];
+    let menuCategories = [];
+
+    // Initialize the application
+    $(document).ready(function() {
+        // Load current user data
+        loadCurrentUser();
+        
+        // Load dashboard stats
+        loadDashboardStats();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Show the appropriate page based on URL
+        showPageFromURL();
+
+        // Initialize reservation search
+        setupReservationSearch();
+
+        $('#reservation-store, #reservation-party, #reservation-date, #reservation-time').change(function() {
+            const storeId = $('#reservation-store').val();
+            const partySize = $('#reservation-party').val();
+            const date = $('#reservation-date').val();
+            const time = $('#reservation-time').val();
+            
+            if (storeId && partySize && date && time) {
+                loadAvailableTables(storeId, partySize);
+            }
+        });
+    });
+    
+    // Set up CSRF token for AJAX requests
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                xhr.setRequestHeader("X-CSRFToken", $('meta[name="csrf-token"]').attr('content'));
+            }
+        }
+    });
+
+    // Enhanced error handler
+    function handleAjaxError(xhr, defaultMessage = 'Operation failed') {
+        let message = defaultMessage;
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            message = xhr.responseJSON.message;
+        } else if (xhr.status === 404) {
+            message = 'Resource not found';
+        } else if (xhr.statusText) {
+            message += ` (${xhr.statusText})`;
+        }
+        
+        console.error('Error details:', {
+            status: xhr.status,
+            response: xhr.responseJSON,
+            message: message
+        });
+        
+        showAlert('danger', message);
+        return message;
+    }
+
+    // In the loadCurrentUser function:
+    function loadCurrentUser() {
+        $.ajax({
+            url: '/api/profile',
+            method: 'GET',
+            success: function(response) {
+                currentUser = response;
+                $('#username-display').text(response.username);
+                $('#profile-username').val(response.username);
+                $('#profile-email').val(response.email);
+                $('#profile-role').val(response.role);
+                
+                // Update profile image
+                const profileImage = response.image_url || '../images/placeholder.png';
+                $('#profile-image-preview').attr('src', profileImage);
+                $('#profile-image-url').val(response.image_url || '');
+                
+                // Update topbar image
+                $('.user-info img').attr('src', profileImage);
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load user profile');
+            }
+        });
+    }
+
+    // Load all dashboard statistics
+    function loadDashboardStats() {
+        showLoading();
+        
+        // First load the main dashboard data
+        $.ajax({
+            url: '/api/dashboard',
+            method: 'GET',
+            success: function(dashboardResponse) {
+                // Update the cards with real data
+                updateDashboardCards(dashboardResponse);
+                
+                // Then load additional stats
+                loadAdditionalStats();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load dashboard statistics');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+
+        $.ajax({
+            url: '/api/tables',
+            method: 'GET',
+            success: function(tablesResponse) {
+                $('#total-tables').text(tablesResponse.length || 0);
+            },
+            error: function(xhr) {
+                console.error('Failed to load tables count:', xhr);
+            }
+        });
+    }
+
+    // Update the dashboard cards with data
+    function updateDashboardCards(data) {
+        // Format and display the values
+        $('#today-revenue').text('$' + (data.revenue_today || 0).toFixed(2));
+        $('#available-tables').text(data.available_tables || 0);
+        $('#active-orders').text(data.active_orders || 0);
+        $('#waitlist-count').text(data.waitlist_count || 0);
+        
+        // Load recent orders
+        if (data.recent_orders) {
+            populateRecentOrders(data.recent_orders);
+        } else {
+            loadRecentOrders();
+        }
+    }
+
+    // Load additional statistics not in the main dashboard endpoint
+    function loadAdditionalStats() {
+        // Load waitlist count if not already loaded
+        if ($('#waitlist-count').text() === '0') {
+            $.ajax({
+                url: '/api/waitlist',
+                method: 'GET',
+                success: function(waitlistResponse) {
+                    $('#waitlist-count').text(waitlistResponse.length || 0);
+                },
+                error: function(xhr) {
+                    console.error('Failed to load waitlist count:', xhr);
+                }
+            });
+        }
+        
+        // Load active orders count if not already loaded
+        if ($('#active-orders').text() === '0') {
+            $.ajax({
+                url: '/api/orders?status=processing',
+                method: 'GET',
+                success: function(ordersResponse) {
+                    $('#active-orders').text(ordersResponse.length || 0);
+                },
+                error: function(xhr) {
+                    console.error('Failed to load active orders count:', xhr);
+                }
+            });
+        }
+    }
+
+    // Populate recent orders table
+    function populateRecentOrders(orders) {
+        const tbody = $('#recent-orders-body');
+        tbody.empty();
+        
+        if (!orders || orders.length === 0) {
+            tbody.append('<tr><td colspan="6" class="text-center">No recent orders</td></tr>');
+            return;
+        }
+        
+        orders.forEach(order => {
+            const statusBadge = getStatusBadge(order.status);
+            const paymentBadge = getPaymentBadge(order.payment_status);
+            
+            tbody.append(`
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${order.table_number || 'Takeout'}</td>
+                    <td>${statusBadge}</td>
+                    <td>${paymentBadge}</td>
+                    <td>$${(order.total_amount || 0).toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm view-order-btn" data-id="${order.id}">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    // Helper function for payment status badges
+    function getPaymentBadge(status) {
+        const badges = {
+            'paid': 'badge-success',
+            'unpaid': 'badge-warning',
+            'refunded': 'badge-danger',
+            'partial': 'badge-info'
+        };
+        return `<span class="badge ${badges[status] || 'badge-secondary'}">${status}</span>`;
+    }
+
+    function loadRecentOrders() {
+        $.ajax({
+            url: '/api/orders?limit=5',
+            method: 'GET',
+            success: function(response) {
+                const tbody = $('#recent-orders-body');
+                tbody.empty();
+                
+                response.forEach(order => {
+                    let statusBadge;
+                    switch(order.status) {
+                        case 'pending':
+                            statusBadge = '<span class="badge badge-warning">Pending</span>';
+                            break;
+                        case 'processing':
+                            statusBadge = '<span class="badge badge-info">Processing</span>';
+                            break;
+                        case 'completed':
+                            statusBadge = '<span class="badge badge-success">Completed</span>';
+                            break;
+                        case 'cancelled':
+                            statusBadge = '<span class="badge badge-danger">Cancelled</span>';
+                            break;
+                        default:
+                            statusBadge = '<span class="badge badge-secondary">Unknown</span>';
+                    }
+                    
+                    tbody.append(`
+                        <tr>
+                            <td>${order.id}</td>
+                            <td>${order.table_number || 'Takeout'}</td>
+                            <td>${statusBadge}</td>
+                            <td>$${order.total_amount.toFixed(2)}</td>
+                            <td>${new Date(order.created_at).toLocaleTimeString()}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm view-order-btn" data-id="${order.id}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load recent orders');
+            }
+        });
+    }
+
+    function showLoading() {
+        $('body').append(`
+            <div class="loading-overlay">
+                <i class="fas fa-spinner fa-spin loading-spinner"></i>
+            </div>
+        `);
+    }
+
+    function hideLoading() {
+        $('.loading-overlay').remove();
+    }
+
+    // Set up event listeners
+    function setupEventListeners() {
+        // Set up reservation search
+        setupReservationSearch();
+
+        // Toggle sidebar
+        $('#toggle-btn').click(function() {
+            $('#sidebar').toggleClass('collapsed');
+            $('#main-content').toggleClass('collapsed');
+        });
+        
+        // Navigation links
+        $(document).on('click', '#logout-btn', function(e) {
+            e.preventDefault();
+            logout();
+        });
+        
+        // Section tabs
+        $(document).on('click', '.section-tab', function() {
+            const tab = $(this).data('tab');
+            $('.section-tab').removeClass('active');
+            $(this).addClass('active');
+            
+            // Filter content based on tab
+            filterContent(tab);
+        });
+        
+        // Add buttons
+        $('#add-order-btn, #create-order-btn').click(showAddOrderModal);
+        $('#add-waitlist-btn, #add-party-btn').click(showAddWaitlistModal);
+        $('#seat-customer-btn').click(showSeatCustomerModal);
+        
+        // Save buttons
+        $('#save-order-btn').click(saveOrder);
+        $('#save-waitlist-btn').click(saveWaitlist);
+        $('#confirm-seat-btn').click(seatParty);
+        
+        // Order items
+        $('#add-order-item-btn').click(addOrderItem);
+        
+        // Profile form
+        $('#profile-form').submit(function(e) {
+            e.preventDefault();
+            saveProfile();
+        });
+        
+        // Delegated event handlers for dynamic content
+        $(document).on('click', '.view-order-btn', function() {
+            viewOrder($(this).data('id'));
+        });
+        
+        $(document).on('click', '.edit-order-btn', function() {
+            showEditOrderModal($(this).data('id'));
+        });
+        
+        $(document).on('click', '.remove-order-item-btn', function() {
+            $(this).closest('tr').remove();
+            updateOrderTotal();
+        });
+        
+        $(document).on('click', '.table-card', function(e) {
+            // Only trigger if clicking directly on the card, not buttons
+            if ($(e.target).closest('.table-actions').length === 0 && 
+                $(e.target).closest('.btn').length === 0) {
+                const tableId = $(this).data('id');
+                const status = $(this).data('status');
+                
+                if (status === 'available') {
+                    showAddOrderModal(tableId);
+                } else {
+                    viewTableOrder(tableId);
+                }
+            }
+        });
+
+        $(document).on('click', '.view-reservation-btn', function() {
+            viewReservation($(this).data('id'));
+        });
+
+        $(document).on('click', '.edit-reservation-btn', function() {
+            editReservation($(this).data('id'));
+        });
+
+        $(document).on('click', '.delete-reservation-btn', function() {
+            deleteReservation($(this).data('id'));
+        });
+
+        $(document).on('click', '#save-reservation-btn', saveReservationChanges);
+        $(document).on('click', '#delete-reservation-btn', function() {
+            deleteReservation($('#edit-reservation-id').val());
+        });
+
+        // Add event listener for search input
+        $(document).on('input', '#reservation-search', function() {
+            const searchQuery = $(this).val().trim();
+            const dateFilter = $('#reservation-date-filter').val();
+            const statusFilter = $('#reservation-status-filter').val();
+            
+            // Only search if query is at least 2 characters or empty
+            if (searchQuery.length >= 2 || searchQuery.length === 0) {
+                loadReservations(dateFilter, statusFilter, searchQuery);
+            }
+        });
+
+        // Filter controls
+        $(document).on('click', '#apply-filters-btn', function() {
+            const dateFilter = $('#reservation-date-filter').val();
+            const statusFilter = $('#reservation-status-filter').val();
+            const searchQuery = $('#reservation-search').val();
+            loadReservations(dateFilter, statusFilter, searchQuery);
+        });
+        
+        $(document).on('click', '#clear-filters-btn', function() {
+            $('#reservation-date-filter').val('');
+            $('#reservation-status-filter').val('');
+            $('#reservation-search').val('');
+            loadReservations();
+        });
+        
+        // Section tabs
+        $(document).on('click', '.section-tab', function() {
+            const tab = $(this).data('tab');
+            $('.section-tab').removeClass('active');
+            $(this).addClass('active');
+            
+            if (currentPage === 'reservations') {
+                let statusFilter = null;
+                if (tab !== 'all') {
+                    statusFilter = tab;
+                }
+                loadReservations(null, statusFilter);
+            }
+        });
+
+        // Add event listeners
+        $(document).on('click', '.view-online-order-btn, .edit-online-order-btn', function() {
+            const orderId = $(this).data('id');
+            $('#online-order-modal').data('order-id', orderId);
+            viewOnlineOrder(orderId);
+        });
+
+        $(document).on('click', '#save-online-order-btn', saveOnlineOrder);
+
+        // Add tab click handler
+        $(document).on('click', '#online-orders-page .section-tab', function() {
+            const tab = $(this).data('tab');
+            $('.section-tab').removeClass('active');
+            $(this).addClass('active');
+            
+            // Get current filters
+            const dateFilter = $('#online-order-date-filter').val();
+            const statusFilter = $('#online-order-status-filter').val();
+            const searchQuery = $('#online-order-search').val();
+            
+            loadOnlineOrders(tab, dateFilter, searchQuery);
+        });
+
+        // Update other filter handlers to maintain current tab
+        $(document).on('click', '#apply-online-order-filters-btn', function() {
+            const activeTab = $('#online-orders-page .section-tab.active').data('tab');
+            const dateFilter = $('#online-order-date-filter').val();
+            const statusFilter = $('#online-order-status-filter').val();
+            const searchQuery = $('#online-order-search').val();
+            
+            loadOnlineOrders(activeTab, dateFilter, searchQuery);
+        });
+
+        $(document).on('change', '#online-order-date-filter, #online-order-status-filter', function() {
+            const activeTab = $('#online-orders-page .section-tab.active').data('tab');
+            const dateFilter = $('#online-order-date-filter').val();
+            const statusFilter = $('#online-order-status-filter').val();
+            const searchQuery = $('#online-order-search').val();
+            
+            loadOnlineOrders(activeTab, dateFilter, searchQuery);
+        });
+
+        $(document).on('input', '#online-order-search', function() {
+            const searchTerm = $(this).val().trim();
+            const activeTab = $('#online-orders-page .section-tab.active').data('tab');
+            const dateFilter = $('#online-order-date-filter').val();
+            const statusFilter = $('#online-order-status-filter').val();
+            
+            if (searchTerm.length >= 2 || searchTerm.length === 0) {
+                loadOnlineOrders(activeTab, dateFilter, searchTerm);
+            }
+        });
+
+        $(document).on('click', '.section-tab[data-page="online-orders"]', function() {
+            const tab = $(this).data('tab');
+            $('.section-tab').removeClass('active');
+            $(this).addClass('active');
+            
+            let statusFilter = null;
+            if (tab !== 'all') {
+                statusFilter = tab;
+            }
+            loadOnlineOrders(null, statusFilter);
+        });
+    }
+
+    // Add this to your main JavaScript section
+    function logout() {
+        showLoading();
+        
+        // Get CSRF token for the request
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        
+        $.ajax({
+            url: '/logout',
+            method: 'POST',  // Changed to POST for better security
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            success: function(response) {
+                // Clear any client-side user data
+                currentUser = null;
+                
+                // Redirect to login page
+                window.location.href = '/login';
+            },
+            error: function(xhr) {
+                hideLoading();
+                console.error('Logout failed:', xhr);
+                
+                // Fallback - force redirect if AJAX fails
+                window.location.href = '/logout';
+            }
+        });
+    }
+
+    // Show page based on URL
+    function showPageFromURL() {
+        const path = window.location.pathname;
+        let page = 'dashboard';
+        
+        if (path === '/staff/dashboard' || path === '/staff') {
+            page = 'dashboard';
+        } else if (path.startsWith('/staff/tables')) {
+            page = 'tables';
+        } else if (path.startsWith('/staff/orders')) {
+            page = 'orders';
+        } else if (path.startsWith('/staff/reservations')) { 
+        page = 'reservations';
+        } else if (path.startsWith('/staff/waitlist')) {
+            page = 'waitlist';
+        } else if (path.startsWith('/staff/online-orders')) {
+            page = 'online-orders';
+        } else if (path.startsWith('/staff/menu')) {
+            page = 'menu';
+        } else if (path.startsWith('/staff/profile')) {
+            page = 'profile';
+        }
+        
+        showPage(page);
+    }
+
+    function showPage(page) {
+        currentPage = page;
+        
+        // Update active menu item
+        $('.sidebar-menu a').removeClass('active');
+        $(`.sidebar-menu a[data-page="${page}"]`).addClass('active');
+        
+        // Hide all pages
+        $('.page-content').removeClass('active');
+        
+        // Show the selected page
+        $(`#${page}-page`).addClass('active');
+        
+        // Update breadcrumb
+        updateBreadcrumb(page);
+        
+        // Load page-specific content
+        switch(page) {
+            case 'dashboard':
+                loadDashboardStats();
+                break;
+            case 'tables':
+                loadTables();
+                break;
+            case 'orders':
+                loadOrders();
+                break;
+            case 'reservations':
+                loadReservations();
+                break;
+            case 'waitlist':
+                loadWaitlist();
+                break;
+            case 'online-orders':
+                loadOnlineOrders();
+                break;
+            case 'menu':
+                loadMenu();
+                $('#menu-search').val(''); // Clear search on menu page load
+                break;
+            case 'profile':
+                // Profile data is loaded when the page loads
+                break;
+        }
+        
+        // Update URL
+        if (page === 'dashboard') {
+            history.pushState(null, '', '/staff/dashboard');
+        } else {
+            history.pushState(null, '', `/staff/${page}`);
+        }
+    }
+
+    function updateBreadcrumb(page) {
+        let pageName = '';
+        switch(page) {
+            case 'dashboard':
+                pageName = 'Dashboard';
+                break;
+            case 'tables':
+                pageName = 'Tables';
+                break;
+            case 'orders':
+                pageName = 'Orders';
+                break;
+            case 'reservations':
+                pageName = 'Reservations';
+                break;
+            case 'waitlist':
+                pageName = 'Waitlist';
+                break;
+            case 'menu':
+                pageName = 'Menu';
+                break;
+            case 'profile':
+                pageName = 'Profile';
+                break;
+            default:
+                pageName = 'Dashboard';
+        }
+        
+        $('.breadcrumb').html(`
+            <li><a href="/staff/dashboard">Home</a></li>
+            <li>${pageName}</li>
+        `);
+    }
+
+    function filterContent(tab) {
+        if (currentPage === 'tables') {
+            $('.table-card').hide();
+            if (tab === 'all') {
+                $('.table-card').show();
+            } else {
+                $(`.table-card[data-status="${tab}"]`).show();
+            }
+        } else if (currentPage === 'orders') {
+            $('#orders-table-body tr').hide();
+            if (tab === 'all') {
+                $('#orders-table-body tr').show();
+            } else {
+                $(`#orders-table-body tr[data-status="${tab}"]`).show();
+            }
+        }
+    }
+
+    // Show alert message
+    function showAlert(type, message) {
+        const alertDiv = $(`<div class="alert alert-${type}">${message}</div>`);
+        $('.content').prepend(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.fadeOut(() => alertDiv.remove());
+        }, 5000);
+    }
+
+    // Modal functions
+    function showAddOrderModal(preSelectedTableId = null) {
+        // Reset the form
+        $('#order-form')[0].reset();
+        $('#order-items-body').empty();
+        $('#order-total-amount').text('$0.00');
+        $('#order-id').val(''); // Clear any existing order ID
+        
+        // Load tables for dropdown
+        $.ajax({
+            url: '/api/tables',
+            method: 'GET',
+            success: function(response) {
+                $('#order-table').empty();
+                let tableFound = false;
+
+                response.forEach(table => {
+                    const isSelected = table.id == preSelectedTableId;
+                    if (isSelected) tableFound = true;
+
+                    $('#order-table').append(
+                        `<option value="${table.id}" ${isSelected ? 'selected' : ''}>
+                            Table ${table.table_number} (${table.capacity} seats)
+                        </option>`
+                    );
+                });
+
+                if (preSelectedTableId && !tableFound) {
+                    handleAjaxError(null, 'Selected table not found');
+                    return;
+                }
+                
+                // Load products for dropdown
+                $.ajax({
+                    url: '/api/products',
+                    method: 'GET',
+                    success: function(productsResponse) {
+                        $('#order-product').empty();
+                        productsResponse.forEach(product => {
+                            if (product.available) {
+                                $('#order-product').append(
+                                    `<option value="${product.id}">
+                                        ${product.name} ($${product.price.toFixed(2)})
+                                    </option>`
+                                );
+                            }
+                        });
+                        
+                        // Set modal title and show
+                        $('#order-modal-title').text(preSelectedTableId ? 
+                            'Create New Order for Table' : 'Create New Order');
+                        $('#order-modal').modal('show');
+                    },
+                    error: function(xhr) {
+                        handleAjaxError(xhr, 'Failed to load products');
+                    }
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load tables');
+            }
+        });
+    }
+
+    function showEditOrderModal(orderId) {
+        // Validate orderId first
+        if (!orderId || orderId === 'undefined' || isNaN(orderId)) {
+            showAlert('danger', 'Invalid order ID');
+            return;
+        }
+
+        showLoading();
+        
+        $.ajax({
+            url: `/api/orders/${orderId}`,
+            method: 'GET',
+            success: function(orderResponse) {
+                // Additional validation
+                if (!orderResponse || !orderResponse.id) {
+                    showAlert('danger', 'Invalid order data received');
+                    return;
+                }
+
+                // Populate basic info
+                $('#order-id').val(orderResponse.id);
+                $('#order-status').val(orderResponse.status);
+                $('#order-notes').val(orderResponse.notes || '');
+                
+                // Load dependent data
+                loadTablesForOrderModal(orderResponse);
+            },
+            error: function(xhr) {
+                if (xhr.status === 404) {
+                    showAlert('danger', 'Order not found. It may have been deleted.');
+                    if (currentPage === 'tables') loadTables();
+                } else {
+                    handleAjaxError(xhr);
+                }
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    // Save Order function
+    $(document).on('click', '#save-order-btn', function() {
+        const id = $('#order-id').val();
+        const url = `/api/orders/${id || ''}`;
+        const method = id ? 'PUT' : 'POST';
+        
+        // Collect order items
+        const items = [];
+        $('#order-items-body tr').each(function() {
+            const $row = $(this);
+            items.push({
+                product_id: parseInt($row.data('product-id')),
+                quantity: parseInt($row.data('quantity')),
+                price: parseFloat($row.data('price')),
+                notes: ''
+            });
+        });
+
+        const data = {
+            table_id: parseInt($('#order-table').val()),
+            status: $('#order-status').val(),
+            notes: $('#order-notes').val() || null,
+            items: items,
+            total_amount: parseFloat($('#order-total-amount').text().replace('$', ''))
+        };
+
+        showLoading();
+        
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                $('#order-modal').modal('hide');
+                showAlert('success', response.message);
+                // Refresh views
+                if (currentPage === 'orders') loadOrders();
+                if (currentPage === 'tables') loadTables();
+                loadDashboardStats(); // Refresh dashboard stats
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to save order');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    });
+
+    function loadTablesForOrderModal(orderResponse) {
+        $.ajax({
+            url: '/api/tables',
+            success: function(tables) {
+                $('#order-table').empty();
+                tables.forEach(table => {
+                    $('#order-table').append(
+                        `<option value="${table.id}" ${table.id == orderResponse.table_id ? 'selected' : ''}>
+                            Table ${table.table_number}
+                        </option>`
+                    );
+                });
+                loadProductsForOrderModal(orderResponse);
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load tables');
+            }
+        });
+    }
+
+    function loadProductsForOrderModal(orderResponse) {
+        $.ajax({
+            url: '/api/products',
+            success: function(products) {
+                $('#order-product').empty();
+                products.forEach(product => {
+                    if (product.available) {
+                        $('#order-product').append(
+                            `<option value="${product.id}">
+                                ${product.name} ($${product.price.toFixed(2)})
+                            </option>`
+                        );
+                    }
+                });
+                populateOrderItems(orderResponse);
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load products');
+            }
+        });
+    }
+
+    function populateOrderItems(orderResponse) {
+        $('#order-items-body').empty();
+        orderResponse.items.forEach(item => {
+            addOrderItemToTable(
+                item.product_id,
+                item.product_name,
+                item.quantity,
+                item.price
+            );
+        });
+        updateOrderTotal();
+        $('#order-modal-title').text(`Edit Order #${orderResponse.id}`);
+        $('#order-modal').modal('show');
+    }
+
+    function showAddWaitlistModal() {
+        $('#waitlist-form')[0].reset();
+        $('#waitlist-modal').modal('show');
+    }
+
+    // Update the showSeatCustomerModal function
+    function showSeatCustomerModal(preSelectedPartyId = null) {
+        // Load waitlist parties
+        $.ajax({
+            url: '/api/waitlist',
+            method: 'GET',
+            success: function(waitlistResponse) {
+                $('#select-party').empty();
+                waitlistResponse.forEach(party => {
+                    $('#select-party').append(`<option value="${party.id}" ${party.id === preSelectedPartyId ? 'selected' : ''}>${party.name} - Party of ${party.size}</option>`);
+                });
+                
+                // Load available tables
+                $.ajax({
+                    url: '/api/tables?status=available',
+                    method: 'GET',
+                    success: function(tablesResponse) {
+                        $('#select-table').empty();
+                        tablesResponse.forEach(table => {
+                            // Only show tables with enough capacity
+                            const party = waitlistResponse.find(p => p.id === (preSelectedPartyId || $('#select-party').val()));
+                            if (party && table.capacity >= party.size) {
+                                $('#select-table').append(`<option value="${table.id}">Table ${table.table_number} (${table.capacity} seats)</option>`);
+                            }
+                        });
+                        
+                        if ($('#select-table option').length === 0) {
+                            $('#select-table').append('<option value="">No available tables for this party size</option>');
+                        }
+                        
+                        $('#seat-modal').modal('show');
+                    },
+                    error: function(xhr) {
+                        handleAjaxError(xhr, 'Failed to load tables');
+                    }
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load waitlist');
+            }
+        });
+    }
+
+    // Add order item to the table
+    function addOrderItem() {
+        const productId = $('#order-product').val();
+        const productText = $('#order-product option:selected').text();
+        const productName = productText.replace(/ \(\$[\d.]+\)$/, '');
+        const quantity = parseInt($('#order-quantity').val());
+        const price = parseFloat(productText.match(/\$([\d.]+)/)[1]);
+        
+        if (!productId || isNaN(quantity) || quantity <= 0) {
+            handleAjaxError(null, 'Please select a product and enter a valid quantity');
+            return;
+        }
+        
+        addOrderItemToTable(productId, productName, quantity, price);
+        updateOrderTotal();
+        
+        // Reset the form
+        $('#order-quantity').val(1);
+    }
+
+    function addOrderItemToTable(productId, productName, quantity, price) {
+        const total = price * quantity;
+        $('#order-items-body').append(`
+            <tr data-product-id="${productId}" data-price="${price}" data-quantity="${quantity}">
+                <td>${productName}</td>
+                <td>${quantity}</td>
+                <td>$${price.toFixed(2)}</td>
+                <td>$${total.toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm remove-order-item-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+        updateOrderTotal();
+    }
+
+    function updateOrderTotal() {
+        let total = 0;
+        
+        $('#order-items-body tr').each(function() {
+            // Get the price and quantity from the table cells
+            const priceText = $(this).find('td:eq(2)').text().replace('$', '');
+            const quantityText = $(this).find('td:eq(1)').text();
+            
+            // Parse to numbers, default to 0 if parsing fails
+            const price = parseFloat(priceText) || 0;
+            const quantity = parseInt(quantityText) || 0;
+            
+            // Only add to total if both values are valid numbers
+            if (!isNaN(price) && !isNaN(quantity)) {
+                total += price * quantity;
+            } else {
+                console.error('Invalid row data:', {
+                    priceText: priceText,
+                    quantityText: quantityText,
+                    price: price,
+                    quantity: quantity
+                });
+            }
+        });
+        
+        // Update the total display
+        $('#order-total-amount').text('$' + total.toFixed(2));
+    }
+
+    // Load data functions
+    function loadTables() {
+        showLoading();
+        
+        // First load stores to create a mapping
+        $.ajax({
+            url: '/api/stores',
+            method: 'GET',
+            success: function(storesResponse) {
+                // Create a store ID to name mapping
+                const storesMap = {};
+                storesResponse.forEach(store => {
+                    storesMap[store.id] = store.name;
+                });
+                
+                // Then load tables
+                $.ajax({
+                    url: '/api/tables',
+                    method: 'GET',
+                    success: function(tablesResponse) {
+                        // Load reservations to check table statuses
+                        const today = new Date().toISOString().split('T')[0];
+                        $.ajax({
+                            url: `/api/reservations?date=${today}`,
+                            method: 'GET',
+                            success: function(reservationsResponse) {
+                                // Process reservations to mark tables
+                                const now = new Date();
+                                const activeReservations = reservationsResponse.filter(reservation => {
+                                    const reservationTime = new Date(`${reservation.date}T${reservation.time}`);
+                                    const timeDiff = Math.abs(now - reservationTime) / (1000 * 60); // difference in minutes
+                                    return timeDiff <= 30; // Only reservations within 30 minutes
+                                });
+                                
+                                // Mark reserved tables
+                                const reservedTableIds = activeReservations.map(r => r.table_id);
+                                
+                                // Update table statuses
+                                tablesResponse.forEach(table => {
+                                    if (reservedTableIds.includes(table.id)) {
+                                        table.status = 'reserved';
+                                    }
+                                });
+                                
+                                renderTables(tablesResponse, storesMap);
+                            },
+                            error: function() {
+                                // If reservations fail to load, just render tables as-is
+                                renderTables(tablesResponse, storesMap);
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        handleAjaxError(xhr, 'Failed to load tables');
+                    },
+                    complete: function() {
+                        hideLoading();
+                    }
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load stores');
+                hideLoading();
+            }
+        });
+    }
+
+    function renderTables(tables, storesMap) {
+        const container = $('#tables-container');
+        container.empty();
+        
+        if (tables.length === 0) {
+            container.append('<p>No tables found</p>');
+            return;
+        }
+        
+        tables.forEach(table => {
+            let statusClass, statusText;
+            switch(table.status) {
+                case 'available':
+                    statusClass = 'status-available';
+                    statusText = 'Available';
+                    break;
+                case 'occupied':
+                    statusClass = 'status-occupied';
+                    statusText = 'Occupied';
+                    break;
+                case 'reserved':
+                    statusClass = 'status-reserved';
+                    statusText = 'Reserved';
+                    break;
+                case 'cleaning':
+                    statusClass = 'status-cleaning';
+                    statusText = 'Cleaning';
+                    break;
+                default:
+                    statusClass = 'status-available';
+                    statusText = 'Available';
+            }
+            
+            const storeName = table.store_id ? (storesMap[table.store_id] || 'Main Store') : 'Main Store';
+            
+            container.append(`
+                <div class="table-card" data-id="${table.id}" data-status="${table.status}">
+                    <h4>Table ${table.table_number}</h4>
+                    <p>Store: ${storeName}</p>
+                    <p>Capacity: ${table.capacity} seats</p>
+                    <p>Status: <span class="table-status ${statusClass}">${statusText}</span></p>
+                    <div class="table-actions">
+                        ${(table.status === 'available' || table.status === 'reserved') ? 
+                            '<button class="btn btn-primary btn-sm start-order-btn">Start Order</button>' : 
+                            '<button class="btn btn-info btn-sm view-order-btn">View Order</button>'}
+                        ${table.status === 'occupied' ? 
+                            '<button class="btn btn-success btn-sm complete-order-btn">Complete Order</button>' : ''}
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    // Handle Start Order button clicks
+    $(document).on('click', '.start-order-btn', function(e) {
+        e.stopPropagation(); // Prevent the table card click event
+        const tableId = $(this).closest('.table-card').data('id');
+        showAddOrderModal(tableId);
+    });
+
+    // Handle View Order button clicks
+    $(document).on('click', '.view-order-btn', function(e) {
+        e.stopPropagation(); // Prevent the table card click event
+        const tableId = $(this).closest('.table-card').data('id');
+        viewTableOrder(tableId);
+    });
+
+    // Handle Complete Order button clicks
+    $(document).on('click', '.complete-order-btn', function(e) {
+        e.stopPropagation(); // Prevent the table card click event
+        const tableId = $(this).closest('.table-card').data('id');
+        completeTableOrder(tableId);
+    });
+
+    // Add event listener for complete order button
+    $(document).on('click', '.complete-order-btn', function(e) {
+        e.stopPropagation();
+        const tableId = $(this).closest('.table-card').data('id');
+        
+        // Find the active order for this table
+        showLoading();
+        
+        $.ajax({
+            url: '/api/orders',
+            method: 'GET',
+            success: function(response) {
+                const tableOrder = response.find(order => 
+                    order.table_id == tableId && 
+                    order.status !== 'completed' && 
+                    order.payment_status !== 'paid'
+                );
+                
+                if (tableOrder) {
+                    if (confirm('Mark this order as completed and free up the table?')) {
+                        $.ajax({
+                            url: `/api/orders/${tableOrder.id}`,
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                status: 'completed',
+                                payment_status: 'paid'
+                            }),
+                            success: function() {
+                                showAlert('success', 'Order completed and table freed');
+                                loadTables();
+                            },
+                            error: function(xhr) {
+                                handleAjaxError(xhr, 'Failed to complete order');
+                            },
+                            complete: function() {
+                                hideLoading();
+                            }
+                        });
+                    } else {
+                        hideLoading();
+                    }
+                } else {
+                    handleAjaxError(null, 'No active order found for this table');
+                    hideLoading();
+                }
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load orders');
+                hideLoading();
+            }
+        });
+    });
+
+    // Fix for Create Order functionality
+    function setupOrderCreation() {
+        // Handle Create Order button in Orders page
+        $(document).on('click', '#create-order-btn', function(e) {
+            e.preventDefault();
+            showAddOrderModal();
+        });
+
+        // Handle Create Order button in Quick Actions
+        $(document).on('click', '#add-order-btn', function(e) {
+            e.preventDefault();
+            showAddOrderModal();
+        });
+    }
+
+    // Initialize when document is ready
+    $(document).ready(function() {
+        setupOrderCreation();
+        // Your other initialization code...
+    });
+
+    function loadOrders() {
+        showLoading();
+        
+        $.ajax({
+            url: '/api/orders',
+            method: 'GET',
+            success: function(response) {
+                const tbody = $('#orders-table-body');
+                tbody.empty();
+                
+                response.forEach(order => {
+                    const statusBadge = getStatusBadge(order.status);
+                    
+                    tbody.append(`
+                        <tr data-status="${order.status}">
+                            <td>${order.id}</td>
+                            <td>${order.table_number || 'Takeout'}</td>
+                            <td>${order.username || 'Guest'}</td>
+                            <td>${order.items.length}</td>
+                            <td>${statusBadge}</td>
+                            <td>$${(order.total_amount || 0).toFixed(2)}</td>
+                            <td>${new Date(order.created_at).toLocaleTimeString()}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm view-order-btn" data-id="${order.id}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm edit-order-btn" data-id="${order.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load orders');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function completeTableOrder(tableId) {
+        showLoading();
+        
+        // Find the active order for this table
+        $.ajax({
+            url: `/api/orders?table_id=${tableId}&status=processing`,
+            method: 'GET',
+            success: function(ordersResponse) {
+                if (ordersResponse.length > 0) {
+                    const orderId = ordersResponse[0].id;
+                    
+                    if (confirm('Mark this order as completed and free up the table?')) {
+                        $.ajax({
+                            url: `/api/orders/${orderId}`,
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                status: 'completed',
+                                payment_status: 'paid'
+                            }),
+                            success: function() {
+                                showAlert('success', 'Order completed and table freed');
+                                loadTables();
+                            },
+                            error: function(xhr) {
+                                handleAjaxError(xhr, 'Failed to complete order');
+                            },
+                            complete: function() {
+                                hideLoading();
+                            }
+                        });
+                    } else {
+                        hideLoading();
+                    }
+                } else {
+                    handleAjaxError(null, 'No active order found for this table');
+                    hideLoading();
+                }
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load table orders');
+                hideLoading();
+            }
+        });
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            pending: 'badge-warning',
+            processing: 'badge-info',
+            completed: 'badge-success',
+            cancelled: 'badge-danger'
+        };
+        return `<span class="badge ${badges[status] || 'badge-secondary'}">${status}</span>`;
+    }
+
+    function loadReservations(dateFilter = null, statusFilter = null, searchQuery = null) {
+        showLoading();
+        
+        let url = '/api/reservations';
+        const params = [];
+        
+        if (dateFilter) params.push(`date=${dateFilter}`);
+        if (statusFilter) params.push(`status=${statusFilter}`);
+        if (searchQuery) params.push(`search=${encodeURIComponent(searchQuery)}`);
+        
+        if (params.length) url += `?${params.join('&')}`;
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(response) {
+                const tbody = $('#reservations-table-body');
+                tbody.empty();
+                
+                if (response.length === 0) {
+                    tbody.append('<tr><td colspan="8" class="text-center">No reservations found</td></tr>');
+                    hideLoading();
+                    return;
+                }
+                
+                response.forEach(reservation => {
+                    const statusBadge = getReservationStatusBadge(reservation.status);
+                    
+                    tbody.append(`
+                        <tr data-status="${reservation.status}">
+                            <td>${reservation.id}</td>
+                            <td>${reservation.name}</td>
+                            <td>${new Date(reservation.date).toLocaleDateString()}</td>
+                            <td>${reservation.time}</td>
+                            <td>${reservation.party_size}</td>
+                            <td>${reservation.table_number || 'Not assigned'}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm view-reservation-btn" data-id="${reservation.id}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm edit-reservation-btn" data-id="${reservation.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-reservation-btn" data-id="${reservation.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load reservations');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    // Add this function to handle reservation search
+    function setupReservationSearch() {
+        // Store all reservations when first loaded
+        let allReservations = [];
+        
+        // Load all reservations initially
+        $.ajax({
+            url: '/api/reservations',
+            method: 'GET',
+            success: function(response) {
+                allReservations = response;
+                filterAndDisplayReservations();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load reservations');
+            }
+        });
+        
+        // Search input handler
+        $('#reservation-search').on('input', function() {
+            filterAndDisplayReservations();
+        });
+        
+        // Date filter handler
+        $('#reservation-date-filter').on('change', function() {
+            filterAndDisplayReservations();
+        });
+        
+        // Status filter handler
+        $('#reservation-status-filter').on('change', function() {
+            filterAndDisplayReservations();
+        });
+    }
+
+    function filterAndDisplayReservations() {
+        const searchTerm = $('#reservation-search').val().toLowerCase();
+        const dateFilter = $('#reservation-date-filter').val();
+        const statusFilter = $('#reservation-status-filter').val();
+        
+        // Get active tab
+        const activeTab = $('.section-tab.active').data('tab');
+        
+        // Filter reservations
+        let filtered = allReservations.filter(reservation => {
+            // Apply tab filter
+            if (activeTab !== 'all' && reservation.status !== activeTab) {
+                return false;
+            }
+            
+            // Apply search filter
+            if (searchTerm && 
+                !reservation.name.toLowerCase().includes(searchTerm) &&
+                !(reservation.notes && reservation.notes.toLowerCase().includes(searchTerm)) &&
+                !(reservation.email && reservation.email.toLowerCase().includes(searchTerm)) &&
+                !(reservation.phone && reservation.phone.includes(searchTerm))) {
+                return false;
+            }
+            
+            // Apply date filter
+            if (dateFilter && new Date(reservation.date).toISOString().split('T')[0] !== dateFilter) {
+                return false;
+            }
+            
+            // Apply status filter
+            if (statusFilter && reservation.status !== statusFilter) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Display filtered reservations
+        displayReservations(filtered);
+    }
+
+    function displayReservations(reservations) {
+        const tbody = $('#reservations-table-body');
+        tbody.empty();
+        
+        if (reservations.length === 0) {
+            tbody.append('<tr><td colspan="8" class="text-center">No reservations found</td></tr>');
+            return;
+        }
+        
+        reservations.forEach(reservation => {
+            const statusBadge = getReservationStatusBadge(reservation.status);
+            
+            tbody.append(`
+                <tr data-status="${reservation.status}">
+                    <td>${reservation.id}</td>
+                    <td>${reservation.name}</td>
+                    <td>${new Date(reservation.date).toLocaleDateString()}</td>
+                    <td>${reservation.time}</td>
+                    <td>${reservation.party_size}</td>
+                    <td>${reservation.table_number || 'Not assigned'}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm view-reservation-btn" data-id="${reservation.id}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-primary btn-sm edit-reservation-btn" data-id="${reservation.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-reservation-btn" data-id="${reservation.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function getReservationStatusBadge(status) {
+        const badges = {
+            'confirmed': 'badge-success',
+            'pending': 'badge-warning',
+            'cancelled': 'badge-danger',
+            'completed': 'badge-info'
+        };
+        return `<span class="badge ${badges[status] || 'badge-secondary'}">${status}</span>`;
+    }
+
+    // Update the reservation form submission handler
+    $('#reservation-form').submit(function(e) {
+        e.preventDefault();
+        
+        // Get CSRF token
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        
+        const formData = {
+            name: $('#reservation-name').val(),
+            email: $('#reservation-email').val(),
+            phone: $('#reservation-phone').val(),
+            party_size: parseInt($('#reservation-party').val()),
+            store_id: parseInt($('#reservation-store').val()),
+            table_id: $('#reservation-table').val() ? parseInt($('#reservation-table').val()) : null,
+            date: $('#reservation-date').val(),
+            time: $('#reservation-time').val(),
+            notes: $('#reservation-notes').val()
+        };
+        
+        console.log("Submitting reservation:", formData); // Debug log
+        
+        $.ajax({
+            url: '/api/reservations',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            data: JSON.stringify(formData),
+            success: function(response) {
+                console.log("Reservation success:", response); // Debug log
+                $('#reservation-form')[0].reset();
+                showAlert('success', 'Reservation booked successfully!');
+                
+                // Reload reservations if on reservations page
+                if (window.location.pathname.includes('/reservations')) {
+                    loadReservations();
+                }
+            },
+            error: function(xhr) {
+                console.error("Reservation error:", xhr.responseJSON); // Debug log
+                showAlert('danger', 'Failed to book reservation: ' + 
+                    (xhr.responseJSON?.message || 'Unknown error'));
+                
+                // If the error is due to unauthorized access, redirect to login
+                if (xhr.status === 401) {
+                    window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                }
+            }
+        });
+    });
+
+    function loadStores() {
+        $.ajax({
+            url: '/api/stores',
+            method: 'GET',
+            success: function(response) {
+                const select = $('#reservation-store');
+                select.empty();
+                response.forEach(store => {
+                    select.append(`<option value="${store.id}">${store.name}</option>`);
+                });
+                // Trigger change to load tables for the first store
+                if (response.length > 0) {
+                    select.trigger('change');
+                }
+            },
+            error: function() {
+                console.error('Failed to load stores');
+                // Fallback to some default stores
+                const select = $('#reservation-store');
+                select.empty();
+                select.append('<option value="1">Main Restaurant</option>');
+                select.append('<option value="2">Downtown Branch</option>');
+            }
+        });
+    }
+
+    function loadAvailableTables(storeId, partySize) {
+        const date = $('#reservation-date').val();
+        const time = $('#reservation-time').val();
+        
+        if (!date || !time) return;
+        
+        $.ajax({
+            url: '/api/tables/available',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                store_id: storeId,
+                party_size: partySize,
+                date: date,
+                time: time
+            }),
+            success: function(response) {
+                const select = $('#reservation-table');
+                select.empty();
+                select.append('<option value="">Auto-assign</option>');
+                response.available_tables.forEach(table => {
+                    select.append(`<option value="${table.id}">Table ${table.table_number} (${table.capacity} seats)</option>`);
+                });
+            },
+            error: function() {
+                console.error('Failed to load available tables');
+            }
+        });
+    }
+
+    // Update the loadWaitlist function
+    function loadWaitlist() {
+        showLoading();
+        
+        $.ajax({
+            url: '/api/waitlist',
+            method: 'GET',
+            success: function(response) {
+                const container = $('#waitlist-container');
+                container.empty();
+                
+                if (response.length === 0) {
+                    container.append('<p>No parties currently waiting</p>');
+                    return;
+                }
+                
+                response.forEach(party => {
+                    container.append(`
+                        <div class="waitlist-item">
+                            <div class="waitlist-header">
+                                <h4>${party.name} - Party of ${party.size}</h4>
+                                <div class="waitlist-actions">
+                                    <button class="btn btn-success btn-sm seat-party-btn" data-id="${party.id}">
+                                        Seat Now
+                                    </button>
+                                    <button class="btn btn-danger btn-sm remove-party-btn" data-id="${party.id}">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <p>Wait time: ${party.wait_time} minutes</p>
+                            ${party.notes ? `<p>Notes: ${party.notes}</p>` : ''}
+                        </div>
+                    `);
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load waitlist');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    // Add event listeners for waitlist actions
+    $(document).on('click', '.seat-party-btn', function() {
+        const partyId = $(this).data('id');
+        showSeatCustomerModal(partyId);
+    });
+
+    $(document).on('click', '.remove-party-btn', function() {
+        const partyId = $(this).data('id');
+        
+        if (confirm('Are you sure you want to remove this party from the waitlist?')) {
+            showLoading();
+            
+            $.ajax({
+                url: `/api/waitlist/${partyId}`,
+                method: 'DELETE',
+                success: function() {
+                    showAlert('success', 'Party removed from waitlist');
+                    loadWaitlist();
+                },
+                error: function(xhr) {
+                    handleAjaxError(xhr, 'Failed to remove party');
+                },
+                complete: function() {
+                    hideLoading();
+                }
+            });
+        }
+    });
+
+    function loadMenu() {
+        showLoading();
+        
+        // First load categories
+        $.ajax({
+            url: '/api/categories',
+            method: 'GET',
+            success: function(categoriesResponse) {
+                menuCategories = categoriesResponse.filter(c => c.active);
+                const tabsContainer = $('#menu-page .section-tabs');
+                tabsContainer.empty();
+                
+                // Add "All Products" tab
+                tabsContainer.append('<div class="section-tab active" data-tab="all">All Products</div>');
+                
+                // Add category tabs
+                menuCategories.forEach(category => {
+                    tabsContainer.append(`<div class="section-tab" data-tab="cat-${category.id}">${category.name}</div>`);
+                });
+                
+                // Then load all products
+                loadMenuItems();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load menu categories');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function loadMenuItems(categoryId = null) {
+        $.ajax({
+            url: '/api/products',
+            method: 'GET',
+            success: function(response) {
+                allMenuItems = response; // Store all items for search
+                filterAndDisplayMenuItems(categoryId);
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load menu items');
+            }
+        });
+    }
+
+    function filterAndDisplayMenuItems(categoryId = null, searchTerm = '') {
+        const container = $('#menu-items-container');
+        container.empty();
+        
+        // Filter products based on category and search term
+        let products = allMenuItems;
+        
+        // Apply category filter
+        if (categoryId) {
+            products = products.filter(product => 
+                product.category_id == categoryId && product.available
+            );
+        } else {
+            products = products.filter(product => product.available);
+        }
+        
+        // Apply search filter
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            products = products.filter(product => 
+                product.name.toLowerCase().includes(term) || 
+                (product.description && product.description.toLowerCase().includes(term))
+            );
+        }
+        
+        if (products.length === 0) {
+            container.append('<p>No items found</p>');
+            return;
+        }
+        
+        // Create a map of category IDs to names
+        const categoryMap = {};
+        menuCategories.forEach(category => {
+            categoryMap[category.id] = category.name;
+        });
+        
+        products.forEach(product => {
+            // Get the category name, or use 'Uncategorized' if not found
+            const categoryName = product.category_id ? 
+                (categoryMap[product.category_id] || 'Uncategorized') : 
+                'Uncategorized';
+                
+            container.append(`
+                <div class="menu-item-card" data-category-id="${product.category_id}">
+                    ${product.image ? `<img src="${product.image}" class="menu-item-image" alt="${product.name}">` : ''}
+                    <h5>${product.name}</h5>
+                    <p>${product.description || ''}</p>
+                    <div class="category-badge">${categoryName}</div>
+                    <p class="price">$${product.price.toFixed(2)}</p>
+                </div>
+            `);
+        });
+    }
+
+    // Add event listeners
+    $(document).on('click', '#menu-page .section-tab', function() {
+        const tab = $(this).data('tab');
+        $('.section-tab').removeClass('active');
+        $(this).addClass('active');
+        
+        const searchTerm = $('#menu-search').val();
+        if (tab === 'all') {
+            filterAndDisplayMenuItems(null, searchTerm);
+        } else if (tab.startsWith('cat-')) {
+            const categoryId = tab.split('-')[1];
+            filterAndDisplayMenuItems(categoryId, searchTerm);
+        }
+    });
+
+    // Search functionality
+    $('#menu-search').on('input', function() {
+        const searchTerm = $(this).val();
+        const activeTab = $('#menu-page .section-tab.active').data('tab');
+        
+        if (activeTab === 'all') {
+            filterAndDisplayMenuItems(null, searchTerm);
+        } else if (activeTab.startsWith('cat-')) {
+            const categoryId = activeTab.split('-')[1];
+            filterAndDisplayMenuItems(categoryId, searchTerm);
+        }
+    });
+
+    // saveOrder function
+    function saveOrder() {
+        const id = $('#order-id').val();
+        const url = id ? `/api/orders/${id}` : '/api/orders';
+        const method = id ? 'PUT' : 'POST';
+        
+        // Collect order items
+        const items = [];
+        $('#order-items-body tr').each(function() {
+            items.push({
+                product_id: parseInt($(this).data('product-id')),
+                quantity: parseInt($(this).find('td:eq(1)').text()),
+                price: parseFloat($(this).data('price'))
+            });
+        });
+
+        const orderData = {
+            table_id: parseInt($('#order-table').val()),
+            status: $('#order-status').val(),
+            notes: $('#order-notes').val(),
+            items: items,
+            total_amount: parseFloat($('#order-total-amount').text().replace('$', ''))
+        };
+
+        showLoading();
+        
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: JSON.stringify(orderData),
+            success: function(response) {
+                $('#order-modal').modal('hide');
+                showAlert('success', 'Order saved successfully!');
+                
+                // Always refresh tables when order status changes
+                loadTables();
+                
+                // Refresh orders view if on orders page
+                if (currentPage === 'orders') loadOrders();
+                
+                // Refresh dashboard stats
+                loadDashboardStats();
+            },
+            error: function(xhr) {
+                let errorMsg = 'Failed to save order';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                    
+                    if (xhr.responseJSON.order_id) {
+                        if (confirm(`${errorMsg}. Would you like to view that order instead?`)) {
+                            showEditOrderModal(xhr.responseJSON.order_id);
+                        }
+                    }
+                }
+                showAlert('danger', errorMsg);
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function refreshOrderViews() {
+        if (currentPage === 'orders') loadOrders();
+        if (currentPage === 'tables') loadTables();
+        loadDashboardStats();
+    }
+
+    function saveWaitlist() {
+        const data = {
+            name: $('#party-name').val(),
+            size: $('#party-size').val(),
+            phone: $('#party-phone').val(),
+            notes: $('#party-notes').val()
+        };
+        
+        $.ajax({
+            url: '/api/waitlist', // This endpoint would need to be created
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                $('#waitlist-modal').modal('hide');
+                showAlert('success', 'Party added to waitlist');
+                loadWaitlist();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to add to waitlist');
+            }
+        });
+    }
+
+    // Update the seatParty function
+    function seatParty() {
+        const partyId = $('#select-party').val();
+        const tableId = $('#select-table').val();
+        
+        if (!partyId || !tableId) {
+            handleAjaxError(null, 'Please select both a party and a table');
+            return;
+        }
+        
+        showLoading();
+        
+        // First check if the table already has an active order
+        $.ajax({
+            url: `/api/orders?table_id=${tableId}`,
+            method: 'GET',
+            success: function(ordersResponse) {
+                const activeOrder = ordersResponse.find(order => 
+                    order.status !== 'completed' && 
+                    order.payment_status !== 'paid'
+                );
+                
+                if (activeOrder) {
+                    hideLoading();
+                    if (confirm('This table already has an active order. Would you like to view that order instead?')) {
+                        showEditOrderModal(activeOrder.id);
+                    }
+                    return;
+                }
+                
+                // If no active order, proceed with seating
+                $.ajax({
+                    url: '/api/waitlist/seat',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        party_id: partyId,
+                        table_id: tableId,
+                        initial_items: []
+                    }),
+                    success: function(response) {
+                        $('#seat-modal').modal('hide');
+                        showAlert('success', 'Party seated successfully');
+                        showEditOrderModal(response.order_id);
+                        loadWaitlist();
+                        loadTables();
+                    },
+                    error: function(xhr) {
+                        handleAjaxError(xhr, 'Failed to seat party');
+                    },
+                    complete: function() {
+                        hideLoading();
+                    }
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to check table status');
+                hideLoading();
+            }
+        });
+    }
+
+    function loadReservations() {
+        showLoading();
+        
+        $.ajax({
+            url: '/api/reservations',
+            method: 'GET',
+            success: function(response) {
+                allReservations = response;
+                filterAndDisplayReservations();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load reservations');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function getReservationStatusBadge(status) {
+        const badges = {
+            'confirmed': 'badge-success',
+            'pending': 'badge-warning',
+            'cancelled': 'badge-danger',
+            'completed': 'badge-info'
+        };
+        return `<span class="badge ${badges[status] || 'badge-secondary'}">${status}</span>`;
+    }
+
+    function viewReservation(reservationId) {
+        showLoading();
+        $.ajax({
+            url: `/api/reservations/${reservationId}`,
+            method: 'GET',
+            success: function(reservation) {
+                // Create and show the view modal if it doesn't exist
+                if ($('#view-reservation-modal').length === 0) {
+                    createViewReservationModal();
+                }
+                
+                // Show reservation details in the modal
+                $('#view-reservation-modal .modal-title').text(`Reservation #${reservation.id}`);
+                $('#view-reservation-body').html(`
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Name:</strong> ${reservation.name}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Party Size:</strong> ${reservation.party_size}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Date:</strong> ${new Date(reservation.date).toLocaleDateString()}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Time:</strong> ${reservation.time}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Store:</strong> ${reservation.store_name || 'Main Store'}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Table:</strong> ${reservation.table_number || 'Not assigned'}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Status:</strong> ${getReservationStatusBadge(reservation.status)}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Phone:</strong> ${reservation.phone || 'N/A'}
+                        </div>
+                    </div>
+                    ${reservation.email ? `<div class="mb-3"><strong>Email:</strong> ${reservation.email}</div>` : ''}
+                    ${reservation.notes ? `<div class="mb-3"><strong>Notes:</strong> ${reservation.notes}</div>` : ''}
+                `);
+                $('#view-reservation-modal').modal('show');
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load reservation details');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function createViewReservationModal() {
+        const modalHtml = `
+            <div class="modal" id="view-reservation-modal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Reservation Details</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body" id="view-reservation-body">
+                            <!-- Content will be loaded dynamically -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(modalHtml);
+    }
+
+    function editReservation(reservationId) {
+        showLoading();
+        
+        $.ajax({
+            url: `/api/reservations/${reservationId}`,
+            method: 'GET',
+            success: function(reservation) {
+                // Create and show the edit modal if it doesn't exist
+                if ($('#edit-reservation-modal').length === 0) {
+                    createEditReservationModal();
+                }
+                
+                // Populate the edit form
+                $('#edit-reservation-id').val(reservation.id);
+                $('#edit-reservation-name').val(reservation.name);
+                $('#edit-reservation-email').val(reservation.email || '');
+                $('#edit-reservation-phone').val(reservation.phone || '');
+                $('#edit-reservation-party').val(reservation.party_size);
+                $('#edit-reservation-date').val(reservation.date.split('T')[0]);
+                $('#edit-reservation-time').val(reservation.time);
+                $('#edit-reservation-notes').val(reservation.notes || '');
+                $('#edit-reservation-status').val(reservation.status);
+                
+                // Load stores for dropdown
+                $.ajax({
+                    url: '/api/stores',
+                    method: 'GET',
+                    success: function(stores) {
+                        const storeSelect = $('#edit-reservation-store');
+                        storeSelect.empty();
+                        stores.forEach(store => {
+                            storeSelect.append(`<option value="${store.id}" ${store.id == reservation.store_id ? 'selected' : ''}>${store.name}</option>`);
+                        });
+                        
+                        // Load available tables for the reservation date/time
+                        loadAvailableTablesForEdit(reservation);
+                    },
+                    error: function(xhr) {
+                        handleAjaxError(xhr, 'Failed to load stores');
+                    }
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load reservation');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function createEditReservationModal() {
+        const modalHtml = `
+            <div class="modal" id="edit-reservation-modal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Reservation</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="edit-reservation-form">
+                                <input type="hidden" id="edit-reservation-id">
+                                <div class="form-group">
+                                    <label for="edit-reservation-name">Name</label>
+                                    <input type="text" class="form-control" id="edit-reservation-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-reservation-email">Email</label>
+                                    <input type="email" class="form-control" id="edit-reservation-email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-reservation-phone">Phone</label>
+                                    <input type="tel" class="form-control" id="edit-reservation-phone">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="edit-reservation-party">Party Size</label>
+                                            <input type="number" class="form-control" id="edit-reservation-party" min="1" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="edit-reservation-store">Store</label>
+                                            <select class="form-control" id="edit-reservation-store" required></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="edit-reservation-date">Date</label>
+                                            <input type="date" class="form-control" id="edit-reservation-date" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="edit-reservation-time">Time</label>
+                                            <input type="time" class="form-control" id="edit-reservation-time" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-reservation-table">Table (Optional)</label>
+                                    <select class="form-control" id="edit-reservation-table">
+                                        <option value="">Auto-assign</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-reservation-status">Status</label>
+                                    <select class="form-control" id="edit-reservation-status">
+                                        <option value="pending">Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-reservation-notes">Notes</label>
+                                    <textarea class="form-control" id="edit-reservation-notes" rows="3"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" id="delete-reservation-btn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="save-reservation-btn">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(modalHtml);
+        
+        // Set up event listeners for the modal
+        $('#save-reservation-btn').click(saveReservationChanges);
+        $('#delete-reservation-btn').click(function() {
+            deleteReservation($('#edit-reservation-id').val());
+        });
+        
+        // Update tables when date/time changes
+        $('#edit-reservation-date, #edit-reservation-time, #edit-reservation-party, #edit-reservation-store').change(function() {
+            const reservationId = $('#edit-reservation-id').val();
+            const storeId = $('#edit-reservation-store').val();
+            const partySize = $('#edit-reservation-party').val();
+            const date = $('#edit-reservation-date').val();
+            const time = $('#edit-reservation-time').val();
+            
+            if (storeId && partySize && date && time) {
+                loadAvailableTablesForEdit({
+                    id: reservationId,
+                    store_id: storeId,
+                    party_size: partySize,
+                    date: date,
+                    time: time
+                });
+            }
+        });
+    }
+
+    function loadAvailableTablesForEdit(reservation) {
+        $.ajax({
+            url: '/api/tables/available',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                store_id: reservation.store_id,
+                party_size: reservation.party_size,
+                date: reservation.date,
+                time: reservation.time,
+                exclude_reservation_id: reservation.id
+            }),
+            success: function(response) {
+                const tableSelect = $('#edit-reservation-table');
+                tableSelect.empty();
+                tableSelect.append('<option value="">Auto-assign</option>');
+                
+                response.available_tables.forEach(table => {
+                    tableSelect.append(
+                        `<option value="${table.id}" ${table.id === reservation.table_id ? 'selected' : ''}>
+                            Table ${table.table_number} (${table.capacity} seats)
+                        </option>`
+                    );
+                });
+                
+                // Show the edit modal
+                $('#edit-reservation-modal').modal('show');
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load available tables');
+            }
+        });
+    }
+
+    function saveReservationChanges() {
+        const reservationId = $('#edit-reservation-id').val();
+        if (!reservationId) {
+            handleAjaxError(null, 'Invalid reservation ID');
+            return;
+        }
+
+        const data = {
+            name: $('#edit-reservation-name').val(),
+            email: $('#edit-reservation-email').val(),
+            phone: $('#edit-reservation-phone').val(),
+            party_size: parseInt($('#edit-reservation-party').val()),
+            store_id: parseInt($('#edit-reservation-store').val()),
+            date: $('#edit-reservation-date').val(),
+            time: $('#edit-reservation-time').val(),
+            table_id: $('#edit-reservation-table').val() || null,
+            status: $('#edit-reservation-status').val(),
+            notes: $('#edit-reservation-notes').val()
+        };
+
+        // Validate required fields
+        if (!data.name || !data.party_size || !data.date || !data.time || !data.store_id) {
+            handleAjaxError(null, 'Please fill in all required fields');
+            return;
+        }
+
+        showLoading();
+        
+        $.ajax({
+            url: `/api/reservations/${reservationId}`,
+            method: 'PUT',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: JSON.stringify(data),
+            success: function(response) {
+                $('#edit-reservation-modal').modal('hide');
+                showAlert('success', 'Reservation updated successfully');
+                loadReservations();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to update reservation');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+        // Update the deleteReservation function
+    function deleteReservation(reservationId) {
+        if (!confirm('Are you sure you want to delete this reservation?')) {
+            return;
+        }
+        
+        showLoading();
+        
+        $.ajax({
+            url: `/api/reservations/${reservationId}`,
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                showAlert('success', 'Reservation deleted successfully');
+                loadReservations();
+                $('#edit-reservation-modal').modal('hide');
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to delete reservation');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function getReservationStatusBadge(status) {
+        const badges = {
+            'confirmed': 'badge-success',
+            'pending': 'badge-warning',
+            'cancelled': 'badge-danger',
+            'completed': 'badge-info'
+        };
+        return `<span class="badge ${badges[status] || 'badge-secondary'}">${status}</span>`;
+    }
+
+    function loadOnlineOrders(tab = 'all', dateFilter = null, searchQuery = null, statusFilter = null) {
+        showLoading();
+        
+        let url = '/api/online/orders';
+        const params = [];
+        
+        // Add status filter based on selected tab
+        if (tab !== 'all') {
+            params.push(`status=${tab}`);
+        }
+        
+        // Add date filter if provided
+        if (dateFilter) {
+            params.push(`date=${dateFilter}`);
+        }
+        
+        // Add search query if provided
+        if (searchQuery) {
+            params.push(`search=${encodeURIComponent(searchQuery)}`);
+        }
+        
+        // Add explicit status filter from dropdown if provided
+        if (statusFilter && statusFilter !== '') {
+            // Remove any existing status filter from tab
+            params = params.filter(p => !p.startsWith('status='));
+            params.push(`status=${statusFilter}`);
+        }
+        
+        if (params.length) {
+            url += `?${params.join('&')}`;
+        }
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(response) {
+                const tbody = $('#online-orders-table-body');
+                tbody.empty();
+                
+                if (response.length === 0) {
+                    tbody.append('<tr><td colspan="8" class="text-center">No online orders found</td></tr>');
+                    hideLoading();
+                    return;
+                }
+                
+                response.forEach(order => {
+                    const statusBadge = getOnlineOrderStatusBadge(order.status);
+                    const paymentBadge = getPaymentBadge(order.payment_status || 'paid');
+                    
+                    tbody.append(`
+                        <tr data-status="${order.status}">
+                            <td>${order.order_number}</td>
+                            <td>${order.customer_name || 'Guest'}</td>
+                            <td>${order.items.length} items</td>
+                            <td>$${order.total.toFixed(2)}</td>
+                            <td>${paymentBadge}</td>
+                            <td>${statusBadge}</td>
+                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm view-online-order-btn" data-id="${order.id}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm edit-online-order-btn" data-id="${order.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load online orders');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function getOnlineOrderStatusBadge(status) {
+        const badges = {
+            'pending': 'badge-warning',
+            'processing': 'badge-info',
+            'completed': 'badge-success',
+            'cancelled': 'badge-danger'
+        };
+        return `<span class="badge ${badges[status] || 'badge-secondary'}">${status}</span>`;
+    }
+
+    function viewOnlineOrder(orderId) {
+        showLoading();
+        
+        $.ajax({
+            url: `/api/online/orders/${orderId}`,
+            method: 'GET',
+            success: function(order) {
+                $('#online-order-modal-title').text(`Online Order #${order.order_number}`);
+                $('#online-order-number').text(order.order_number);
+                $('#online-order-date').text(new Date(order.created_at).toLocaleString());
+                $('#online-order-customer').text(order.customer_name || 'Guest');
+                $('#online-order-payment').text(order.payment_method);
+                $('#online-order-address').text(order.delivery_address || 'Pickup');
+                $('#online-order-status').val(order.status);
+                $('#online-order-notes').val(order.notes || '');
+                
+                // Load order items
+                const itemsBody = $('#online-order-items-body');
+                itemsBody.empty();
+                
+                order.items.forEach(item => {
+                    itemsBody.append(`
+                        <tr>
+                            <td>${item.name} (${item.variation || 'Standard'})</td>
+                            <td>${item.quantity}</td>
+                            <td>$${item.price.toFixed(2)}</td>
+                            <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    `);
+                });
+                
+                // Update totals
+                $('#online-order-subtotal').text('$' + (order.subtotal || 0).toFixed(2));
+                $('#online-order-delivery').text('$' + (order.delivery_fee || 0).toFixed(2));
+                $('#online-order-discount').text('$' + (order.discount || 0).toFixed(2));
+                $('#online-order-tax').text('$' + (order.tax || 0).toFixed(2));
+                $('#online-order-total').text('$' + (order.total || 0).toFixed(2));
+                
+                $('#online-order-modal').modal('show');
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load online order details');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    function saveOnlineOrder() {
+        const orderId = $('#online-order-modal').data('order-id');
+        if (!orderId) return;
+        
+        const data = {
+            status: $('#online-order-status').val(),
+            notes: $('#online-order-notes').val()
+        };
+        
+        showLoading();
+        
+        $.ajax({
+            url: `/api/online/orders/${orderId}`,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function() {
+                $('#online-order-modal').modal('hide');
+                showAlert('success', 'Online order updated successfully');
+                loadOnlineOrders();
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to update online order');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    // Update the reservation form submission handler
+    $('#reservation-form').submit(function(e) {
+        e.preventDefault();
+        
+        // Get CSRF token
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        
+        const formData = {
+            name: $('#reservation-name').val(),
+            email: $('#reservation-email').val(),
+            phone: $('#reservation-phone').val(),
+            party_size: parseInt($('#reservation-party').val()),
+            store_id: parseInt($('#reservation-store').val()),
+            table_id: $('#reservation-table').val() ? parseInt($('#reservation-table').val()) : null,
+            date: $('#reservation-date').val(),
+            time: $('#reservation-time').val(),
+            notes: $('#reservation-notes').val()
+        };
+        
+        console.log("Submitting reservation:", formData); // Debug log
+        
+        $.ajax({
+            url: '/api/reservations',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            data: JSON.stringify(formData),
+            success: function(response) {
+                console.log("Reservation success:", response); // Debug log
+                $('#reservation-form')[0].reset();
+                showAlert('success', 'Reservation booked successfully!');
+                
+                // Reload reservations if on reservations page
+                if (window.location.pathname.includes('/reservations')) {
+                    loadReservations();
+                }
+            },
+            error: function(xhr) {
+                console.error("Reservation error:", xhr.responseJSON); // Debug log
+                showAlert('danger', 'Failed to book reservation: ' + 
+                    (xhr.responseJSON?.message || 'Unknown error'));
+                
+                // If the error is due to unauthorized access, redirect to login
+                if (xhr.status === 401) {
+                    window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+                }
+            }
+        });
+    });
+
+    // Update the saveProfile function:
+    function saveProfile() {
+        const data = {
+            email: $('#profile-email').val(),
+            image_url: $('#profile-image-url').val() || null,
+            current_password: $('#profile-current-password').val() || undefined,
+            password: $('#profile-new-password').val() || undefined
+        };
+        
+        if (data.password && data.password !== $('#profile-confirm-password').val()) {
+            handleAjaxError(null, 'New password and confirmation do not match');
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/profile',
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                showAlert('success', response.message);
+                loadCurrentUser();
+                $('#profile-current-password').val('');
+                $('#profile-new-password').val('');
+                $('#profile-confirm-password').val('');
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to update profile');
+            }
+        });
+    }
+
+    // View functions
+    function viewOrder(orderId) {
+        // In a real app, this would show a detailed view of the order
+        showEditOrderModal(orderId);
+    }
+
+    function viewTableOrder(tableId) {
+        showLoading();
+        
+        $.ajax({
+            url: `/api/orders?table_id=${tableId}`,
+            method: 'GET',
+            success: function(ordersResponse) {
+                // Filter out completed orders and sort by most recent
+                const activeOrders = ordersResponse
+                    .filter(order => order.status !== 'completed')
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                if (activeOrders.length > 0) {
+                    showEditOrderModal(activeOrders[0].id);
+                } else if (ordersResponse.length > 0) {
+                    // Show most recent completed order if no active ones exist
+                    const sortedOrders = ordersResponse.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    showEditOrderModal(sortedOrders[0].id);
+                } else {
+                    const alertDiv = $(`
+                        <div class="alert alert-warning" style="margin-top: 20px;">
+                            <i class="fas fa-exclamation-circle"></i> No orders found for this table
+                        </div>
+                    `);
+                    
+                    // If we're on the tables page, append to the table card
+                    if (currentPage === 'tables') {
+                        $(`.table-card[data-id="${tableId}"]`).append(alertDiv);
+                    } else {
+                        // Otherwise show as a general alert
+                        showAlert('warning', 'No orders found for this table');
+                    }
+
+                    // Make the alert disappear after 3 seconds
+                    setTimeout(() => {
+                        alertDiv.fadeOut(() => alertDiv.remove());
+                    }, 3000);
+                }
+            },
+            error: function(xhr) {
+                handleAjaxError(xhr, 'Failed to load table orders');
+            },
+            complete: function() {
+                hideLoading();
+            }
+        });
+    }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', showPageFromURL);
+</script>

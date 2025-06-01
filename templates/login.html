@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ali's Grill - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e31837;
+            --secondary-color: #a29bfe;
+            --accent-color: #fd79a8;
+            --dark-color: #2d3436;
+            --light-color: #f5f6fa;
+            --success-color: #00b894;
+            --error-color: #d63031;
+            --warning-color: #fdcb6e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: #000000;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+        
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: translateY(0);
+            transition: all 0.4s ease;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .logo-main {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        
+        .logo-sub {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--dark-color);
+            margin-top: -5px;
+            display: block;
+        }
+        
+        .login-header p {
+            color: var(--dark-color);
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(108, 92, 231, 0.2);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: transparent;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+        
+        .form-label {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            color: #777;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            background-color: transparent;
+            padding: 0 5px;
+        }
+        
+        .form-control:focus + .form-label,
+        .form-control:not(:placeholder-shown) + .form-label,
+        .form-control:valid + .form-label,
+        .form-control:-webkit-autofill + .form-label {
+            top: -0.6rem;
+            left: 0.8rem;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            background-color: rgba(248,244,244, 0.95);
+            padding: 0 5px;
+        }
+        
+        .form-control:focus:invalid + .form-label,
+        .form-control:not(:placeholder-shown):invalid + .form-label {
+            color: var(--error-color);
+        }
+        
+        .form-control:focus:invalid,
+        .form-control:not(:placeholder-shown):invalid {
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 3px rgba(214, 48, 49, 0.2);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--primary-color), #8c7ae6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .alert-danger {
+            color: white;
+            background-color: var(--error-color);
+            border-color: #c0392b;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-3 {
+            margin-top: 1.5rem;
+        }
+        
+        .register-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .register-link:hover {
+            color: var(--accent-color);
+        }
+        
+        .register-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .register-link:hover::after {
+            width: 100%;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #b2bec3;
+            font-size: 0.8rem;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dfe6e9;
+        }
+        
+        .divider::before {
+            margin-right: 1rem;
+        }
+        
+        .divider::after {
+            margin-left: 1rem;
+        }
+        
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .facebook {
+            background-color: #3b5998;
+        }
+        
+        .google {
+            background-color: #db4437;
+        }
+        
+        .twitter {
+            background-color: #1da1f2;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+            
+            .logo-main {
+                font-size: 2rem;
+            }
+            
+            .logo-sub {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <div class="logo-main">Ali's Grill</div>
+                <div class="logo-sub">GRILL + BAR</div>
+            </div>
+            <p>Welcome back! Please sign in to continue</p>
+        </div>
+        
+        <div id="login-alert" class="alert alert-danger" style="display: none;"></div>
+        
+        <form id="login-form">
+            <input type="hidden" id="csrf_token" name="csrf_token">
+            <div class="form-group">
+                <input type="text" class="form-control" id="username" name="username" placeholder=" " required>
+                <label for="username" class="form-label">Username</label>
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" id="password" name="password" placeholder=" " required>
+                <label for="password" class="form-label">Password</label>
+                <button type="button" class="password-toggle" id="togglePassword">
+                    <i class="far fa-eye"></i>
+                </button>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            
+            <div class="divider">or</div>
+            
+            <div class="social-login">
+                <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-btn google"><i class="fab fa-google"></i></a>
+                <a href="#" class="social-btn twitter"><i class="fab fa-twitter"></i></a>
+            </div>
+        </form>
+        
+        <div class="text-center mt-3">
+            <p>Don't have an account? <a href="/signup" class="register-link">Register now</a></p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Password visibility toggle
+            $('#togglePassword').click(function() {
+                const passwordField = $('#password');
+                const icon = $(this).find('i');
+                
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+            
+            // First get CSRF token
+            $.get('/api/csrf_token', function(response) {
+                $('#csrf_token').val(response.csrf_token);
+            });
+            
+            // Handle autofill detection
+            function checkAutofill() {
+                const username = $('#username');
+                const password = $('#password');
+                
+                // Check if username has value (including autofilled)
+                if (username.val().length > 0) {
+                    username.addClass('has-value');
+                    username.next('.form-label').addClass('active');
+                }
+                
+                // Check if password has value (including autofilled)
+                if (password.val().length > 0) {
+                    password.addClass('has-value');
+                    password.next('.form-label').addClass('active');
+                }
+            }
+            
+            // Run check on page load
+            checkAutofill();
+            
+            // Also check after a short delay to catch browser autofill
+            setTimeout(checkAutofill, 200);
+            
+            // Handle form submission
+            $('#login-form').submit(function(e) {
+                e.preventDefault();
+                
+                const username = $('#username').val();
+                const password = $('#password').val();
+                const csrf_token = $('#csrf_token').val();
+                
+                // Clear any previous errors
+                $('#login-alert').hide();
+                
+                // Add loading state
+                const btn = $(this).find('button[type="submit"]');
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Authenticating...');
+                btn.prop('disabled', true);
+                
+                $.ajax({
+                    url: '/api/login',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    },
+                    data: JSON.stringify({
+                        username: username,
+                        password: password
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            // Add success animation before redirect
+                            $('.login-container').css('transform', 'translateY(-10px)');
+                            setTimeout(() => {
+                                window.location.href = response.redirect;
+                            }, 400);
+                        } else {
+                            $('#login-alert').text(response.message).show();
+                            btn.html('<i class="fas fa-sign-in-alt"></i> Login');
+                            btn.prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Login failed. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        $('#login-alert').text(errorMsg).show();
+                        btn.html('<i class="fas fa-sign-in-alt"></i> Login');
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

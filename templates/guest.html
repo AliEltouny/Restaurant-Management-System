@@ -1,0 +1,3192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Ali's Grill - Restaurant System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e31837;
+            --secondary-color: #f8f9fa;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --text-color: #333;
+            --white: #fff;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --border-color: #e9ecef;
+            --footer-bg: #212529;
+            --hero-overlay: rgba(0, 0, 0, 0.5);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-primary: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --border-color: #2d2d2d;
+            --footer-bg: #0d0d0d;
+            --hero-overlay: rgba(0, 0, 0, 0.7);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            transition: var(--transition);
+        }
+
+        body {
+            color: var(--text-primary);
+            background-color: var(--bg-color);
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow);
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand img {
+            height: 50px;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 8px 15px;
+            margin: 0 5px;
+            position: relative;
+            border-radius: 8px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(227, 24, 55, 0.1);
+        }
+
+        .navbar-nav .nav-link.active {
+            background-color: rgba(227, 24, 55, 0.2);
+            color: var(--primary-color);
+        }
+
+        .navbar-nav .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary-color);
+            transition: var(--transition);
+            border-radius: 3px;
+        }
+
+        .navbar-nav .nav-link:hover:after,
+        .navbar-nav .nav-link.active:after {
+            width: 100%;
+        }
+
+        .page-container {
+            min-height: calc(100vh - 200px); /* Adjust based on your header/footer height */
+            padding-top: 20px;
+        }
+
+        /* Make sure other sections don't interfere */
+        #home-page > section:first-child {
+            padding-top: 0;
+        }
+
+        .user-actions .btn {
+            margin-left: 10px;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #c1122f;
+            border-color: #c1122f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(227, 24, 55, 0.3);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(var(--hero-overlay), var(--hero-overlay)), 
+                        url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 180px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(227, 24, 55, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%);
+            z-index: 0;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Menu Section */
+        .menu-section {
+            padding: 100px 0;
+            background-color: var(--bg-color);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-weight: 700;
+            color: var(--text-primary);
+            position: relative;
+            display: inline-block;
+            font-size: 2.5rem;
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 4px;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .menu-category-title {
+            margin: 50px 0 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .menu-category-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--accent-color);
+        }
+
+        .menu-item-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            height: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .menu-item-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item-img {
+            height: 220px;
+            object-fit: cover;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .menu-item-card:hover .menu-item-img {
+            transform: scale(1.05);
+        }
+
+        .menu-item-body {
+            padding: 25px;
+        }
+
+        .menu-item-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+        }
+
+        .menu-item-price {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .menu-item-desc {
+            color: var(--text-secondary);
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            transition: var(--transition);
+            padding: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(227, 24, 55, 0.4);
+        }
+
+        /* Offers Section */
+        .offers-section {
+            background-color: var(--bg-color);
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .offers-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(227, 24, 55, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
+            z-index: 0;
+        }
+
+        .offer-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            height: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .offer-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .offer-img {
+            height: 220px;
+            object-fit: cover;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .offer-card:hover .offer-img {
+            transform: scale(1.05);
+        }
+
+        .offer-body {
+            padding: 25px;
+            background-color: var(--card-bg);
+        }
+
+        .offer-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+        }
+
+        .offer-desc {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .offer-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+        }
+
+        /* Locations Section */
+        .locations-section {
+            padding: 100px 0;
+            background-color: var(--bg-color);
+        }
+
+        .location-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            height: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .location-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .location-img {
+            height: 220px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .location-body {
+            padding: 25px;
+            background-color: var(--card-bg);
+        }
+
+        .location-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            font-size: 1.4rem;
+        }
+
+        .location-address {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .location-phone {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Reservation Section */
+        .reservation-section {
+            background-color: var(--bg-color);
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .reservation-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(227, 24, 55, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
+            z-index: 0;
+        }
+
+        .reservation-form {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(227, 24, 55, 0.25);
+        }
+
+        #main-content {
+            min-height: auto !important;
+        }
+
+        /* Ensure sections don't have extra bottom space */
+        section:not(.hero-section) {
+            padding-bottom: 50px !important;
+        }
+
+        #reservations-page, #orders-page {
+            padding-top: 20px;
+        }
+
+        /* Hide navbar links when not on home page */
+        #reservations-page ~ nav .navbar-nav,
+        #orders-page ~ nav .navbar-nav {
+            display: none;
+        }
+
+        /* Show back button when not on home page */
+        #reservations-page .back-to-home,
+        #orders-page .back-to-home {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        #home-page .back-to-home {
+            display: none;
+        }
+
+        #home-page, #reservations-page, #orders-page {
+            transition: opacity 0.3s ease;
+        }
+
+        [style*="display: none"] {
+            display: none !important;
+        }
+
+        /* Gift card section */
+        #gift-cards {
+            padding: 50px 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Checkout Page */
+        #checkout-page {
+            min-height: auto !important;
+            padding: 0 !important;
+        }
+
+        /* Adjust the container padding */
+        #checkout-page .container {
+            padding-top: 20px !important;
+            padding-bottom: 20px !important;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--footer-bg);
+            color: var(--white);
+            padding: 50px 0 30px !important;
+            margin-top: 0 !important;
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .footer-title {
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--white);
+            position: relative;
+            display: inline-block;
+            font-size: 1.5rem;
+        }
+
+        .footer-title:after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            bottom: -8px;
+            left: 0;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+            padding-left: 5px;
+        }
+
+        .social-icons a {
+            color: var(--white);
+            font-size: 1.3rem;
+            margin-right: 15px;
+            transition: var(--transition);
+            display: inline-block;
+        }
+
+        .social-icons a:hover {
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            border-top: 1px solid #495057;
+            padding-top: 20px;
+            margin-top: 50px;
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+
+        /* Shopping Cart */
+        .cart-icon {
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .cart-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal */
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            border-bottom: none;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            border-top: none;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+
+        .table {
+            color: var(--text-primary);
+        }
+
+        .table th {
+            border-color: var(--border-color);
+            font-weight: 600;
+        }
+
+        .table td {
+            border-color: var(--border-color);
+            vertical-align: middle;
+        }
+
+        /* Custom Logo Style */
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .logo-subtext {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            display: block;
+            margin-top: -3px;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: none;
+            box-shadow: var(--shadow);
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 10px 0;
+            border-radius: 8px;
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            transition: var(--transition);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(227, 24, 55, 0.1);
+            color: var(--primary-color);
+            padding-left: 25px;
+        }
+
+        .dropdown-divider {
+            border-color: var(--border-color);
+            margin: 8px 0;
+        }
+
+        #profile-dropdown-menu {
+            min-width: 220px;
+        }
+
+        /* Theme Toggle Switch */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .theme-toggle i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-left: auto;
+        }
+
+        .theme-toggle .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .theme-toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .theme-toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .theme-toggle input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        .theme-toggle input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 2.8rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.3rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .navbar-nav {
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid var(--border-color);
+            }
+            
+            .user-actions {
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .reservation-form {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-section {
+                padding: 120px 0;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c1122f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <div class="logo-text">Ali's Grill</div>
+                <div class="logo-subtext">EST. 2023</div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#menu">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#offers">Offers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#locations">Locations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#reservations">Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#catering">Catering</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#gift-cards">Gift Cards</a>
+                    </li>
+                </ul>
+                <div class="user-actions d-flex align-items-center">
+                    <div class="cart-icon me-3">
+                        <a href="#cart" class="text-dark position-relative">
+                            <i class="fas fa-shopping-cart fa-lg"></i>
+                            <span class="cart-count">0</span>
+                        </a>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-2"></i> 
+                            <span id="profile-button-text">Profile</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown" id="profile-dropdown-menu">
+                            <!-- Content will be dynamically inserted by JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page Content (default) -->
+    <div id="home-page">
+        <!-- Hero Section -->
+        <section class="hero-section" id="home">
+            <div class="container">
+                <h1 class="hero-title animate-fadeIn">Welcome to Ali's Grill</h1>
+                <p class="hero-subtitle animate-fadeIn delay-1">Authentic flavors served with passion</p>
+                <div class="d-flex justify-content-center gap-3 hero-buttons animate-fadeIn delay-2">
+                    <a href="#menu" class="btn btn-primary btn-lg px-4 py-2">View Menu</a>
+                    <a href="#reservations" class="btn btn-outline-light btn-lg px-4 py-2">Make Reservation</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Menu Section -->
+        <section class="menu-section" id="menu">
+            <div class="container">
+                <h2 class="section-title animate-fadeIn">Our Menu</h2>
+                
+                <!-- Appetizers -->
+                <h3 class="menu-category-title animate-fadeIn delay-1">Appetizers</h3>
+                <div class="row" id="appetizers-container">
+                    <!-- Appetizers will be loaded here -->
+                </div>
+                
+                <!-- Main Courses -->
+                <h3 class="menu-category-title animate-fadeIn delay-1">Main Courses</h3>
+                <div class="row" id="mains-container">
+                    <!-- Main courses will be loaded here -->
+                </div>
+                
+                <!-- Desserts -->
+                <h3 class="menu-category-title animate-fadeIn delay-1">Desserts</h3>
+                <div class="row" id="desserts-container">
+                    <!-- Desserts will be loaded here -->
+                </div>
+                
+                <!-- Drinks -->
+                <h3 class="menu-category-title animate-fadeIn delay-1">Drinks</h3>
+                <div class="row" id="drinks-container">
+                    <!-- Drinks will be loaded here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Offers Section -->
+        <section class="offers-section" id="offers">
+            <div class="container">
+                <h2 class="section-title animate-fadeIn">Special Offers</h2>
+                <div class="row" id="offers-container">
+                    <div class="col-md-4 animate-fadeIn delay-1">
+                        <div class="offer-card">
+                            <div class="position-relative">
+                                <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="offer-img w-100" alt="Happy Hour">
+                                <div class="offer-badge">Limited Time</div>
+                            </div>
+                            <div class="offer-body">
+                                <h5 class="offer-title">Happy Hour Special</h5>
+                                <p class="offer-desc">50% off all appetizers and drinks from 3pm-6pm Monday-Friday. Don't miss our famous wings and cocktails!</p>
+                                <button class="btn btn-outline-primary">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 animate-fadeIn delay-2">
+                        <div class="offer-card">
+                            <div class="position-relative">
+                                <img src="https://images.unsplash.com/photo-1555244162-803834f70033?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="offer-img w-100" alt="Weekend Brunch">
+                                <div class="offer-badge">Weekends Only</div>
+                            </div>
+                            <div class="offer-body">
+                                <h5 class="offer-title">Weekend Brunch</h5>
+                                <p class="offer-desc">Enjoy our special brunch menu every Saturday and Sunday from 10am-2pm. Bottomless mimosas included!</p>
+                                <button class="btn btn-outline-primary">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 animate-fadeIn delay-3">
+                        <div class="offer-card">
+                            <div class="position-relative">
+                                <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="offer-img w-100" alt="Family Bundle">
+                                <div class="offer-badge">Family Deal</div>
+                            </div>
+                            <div class="offer-body">
+                                <h5 class="offer-title">Family Bundle</h5>
+                                <p class="offer-desc">Feed your whole family with our special bundle: 4 entrees, 2 appetizers, and 4 drinks for just $49.99!</p>
+                                <button class="btn btn-outline-primary">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Locations Section -->
+        <section class="locations-section" id="locations">
+            <div class="container">
+                <h2 class="section-title animate-fadeIn">Our Locations</h2>
+                <div class="row" id="locations-container">
+                    <!-- Locations will be loaded here -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Reservation Section -->
+        <section class="reservation-section" id="reservations">
+            <div class="container">
+                <h2 class="section-title animate-fadeIn">Make a Reservation</h2>
+                <div class="row justify-content-center animate-fadeIn delay-1">
+                    <div class="col-lg-8">
+                        <div class="reservation-form">
+                            <form id="reservation-form">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservation-name" class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" id="reservation-name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservation-email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="reservation-email" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservation-phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="reservation-phone" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservation-party" class="form-label">Party Size</label>
+                                        <select class="form-select" id="reservation-party" required>
+                                            <option value="1">1 Person</option>
+                                            <option value="2">2 People</option>
+                                            <option value="3">3 People</option>
+                                            <option value="4">4 People</option>
+                                            <option value="5">5 People</option>
+                                            <option value="6">6 People</option>
+                                            <option value="7">7 People</option>
+                                            <option value="8">8 People</option>
+                                            <option value="9">9+ People</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="reservation-store" class="form-label">Location</label>
+                                            <select class="form-select" id="reservation-store" required>
+                                                <!-- Stores will be loaded dynamically -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="reservation-table" class="form-label">Table (Optional)</label>
+                                            <select class="form-select" id="reservation-table">
+                                                <option value="">Auto-assign (recommended)</option>
+                                                <!-- Available tables will be loaded dynamically -->
+                                            </select>
+                                            <small class="text-muted" id="table-status-text"></small>
+                                        </div>
+                                    </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservation-date" class="form-label">Date</label>
+                                        <input type="date" class="form-control" id="reservation-date" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservation-time" class="form-label">Time</label>
+                                        <select class="form-select" id="reservation-time" required>
+                                            <!-- Time slots will be loaded dynamically -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reservation-notes" class="form-label">Special Requests</label>
+                                    <textarea class="form-control" id="reservation-notes" rows="3"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-3">Book Reservation</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Catering Section -->
+        <section class="py-5" id="catering">
+            <div class="container">
+                <h2 class="section-title animate-fadeIn">Catering Services</h2>
+                <div class="row align-items-center">
+                    <div class="col-lg-6 animate-fadeIn delay-1">
+                        <img src="https://images.unsplash.com/photo-1555244162-803834f70033?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="img-fluid rounded shadow" alt="Catering">
+                    </div>
+                    <div class="col-lg-6 animate-fadeIn delay-2">
+                        <h3 class="mb-3">Make Your Event Special</h3>
+                        <p>Our catering services bring the restaurant experience to your special events. Whether it's a corporate gathering, wedding, or private party, we'll make it memorable with our delicious food and professional service.</p>
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item bg-transparent border-start-0 border-end-0"><i class="fas fa-check text-primary me-2"></i> Customized menus for your event</li>
+                            <li class="list-group-item bg-transparent border-start-0 border-end-0"><i class="fas fa-check text-primary me-2"></i> Professional setup and service</li>
+                            <li class="list-group-item bg-transparent border-start-0 border-end-0"><i class="fas fa-check text-primary me-2"></i> Delivery options available</li>
+                            <li class="list-group-item bg-transparent border-start-0 border-end-0"><i class="fas fa-check text-primary me-2"></i> Full-service bar options</li>
+                        </ul>
+                        <a href="#contact" class="btn btn-primary px-4 py-2">Request Catering Info</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Gift Cards Section -->
+        <section class="py-5 bg-light" id="gift-cards">
+            <div class="container">
+                <h2 class="section-title animate-fadeIn">Gift Cards</h2>
+                <div class="row align-items-center">
+                    <div class="col-lg-6 order-lg-2 animate-fadeIn delay-1">
+                        <img src="https://www.visitcheltenham.com/dbimgs/gifts-3835455_1920(1).jpg" class="img-fluid rounded shadow" alt="Gift Cards">
+                    </div>
+                    <div class="col-lg-6 order-lg-1 animate-fadeIn delay-2">
+                        <h3 class="mb-3">The Perfect Gift</h3>
+                        <p>Our gift cards are the perfect present for any occasion. Available in any denomination, they can be used at any of our locations for dining, takeout, or catering services.</p>
+                        <div class="d-flex gap-3 mt-4">
+                            <button class="btn btn-primary px-4 py-2">Buy Gift Card</button>
+                            <button class="btn btn-outline-primary px-4 py-2">Check Balance</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Replace the existing sections with these containers -->
+    <div id="main-content">
+
+        <!-- Reservations Page (hidden by default) -->
+        <div id="reservations-page" style="display: none;">
+            <div class="container py-5">
+                <a href="/guest/dashboard" class="btn btn-outline-secondary back-to-home">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Home
+                </a>
+                <h2 class="section-title">My Reservations</h2>
+                <div class="row" id="reservations-container">
+                    <!-- Reservations will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Page (hidden by default) -->
+        <div id="orders-page" style="display: none;">
+            <div class="container py-5">
+                <a href="/guest/dashboard" class="btn btn-outline-secondary back-to-home">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Home
+                </a>
+                <h2 class="section-title">My Orders</h2>
+                <div class="row" id="orders-container">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Page (hidden by default) -->
+    <div id="checkout-page" style="display: none;">
+        <div class="container py-5">
+            <a href="/guest/dashboard" class="btn btn-outline-secondary back-to-home">
+                <i class="fas fa-arrow-left me-2"></i> Back to Home
+            </a>
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">Checkout</h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="checkout-steps">
+                                <!-- Steps will be dynamically inserted -->
+                            </div>
+                            
+                            <div id="checkout-form">
+                                <!-- Form will be dynamically inserted based on delivery/pickup -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="order-summary-items">
+                                <!-- Items will be dynamically inserted -->
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span id="order-subtotal">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Delivery Fee:</span>
+                                <span id="order-delivery">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount:</span>
+                                <span id="order-discount">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (8%):</span>
+                                <span id="order-tax">$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total:</span>
+                                <span id="order-total">$0.00</span>
+                            </div>
+                            
+                            <div class="input-group mt-4">
+                                <input type="text" class="form-control" id="coupon-code" placeholder="Coupon code">
+                                <button class="btn btn-outline-primary" id="apply-coupon">Apply</button>
+                            </div>
+                            <div id="coupon-message" class="mt-2 small"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">Ali's Grill</h5>
+                    <p>Authentic flavors served with passion since 2023. We pride ourselves on using the freshest ingredients and providing exceptional service.</p>
+                    <div class="social-icons mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-yelp"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">Quick Links</h5>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#menu">Menu</a></li>
+                        <li><a href="#offers">Offers</a></li>
+                        <li><a href="#locations">Locations</a></li>
+                        <li><a href="#reservations">Reservations</a></li>
+                        <li><a href="#catering">Catering</a></li>
+                        <li><a href="#gift-cards">Gift Cards</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">Contact Us</h5>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt me-2"></i> 123 Main St, City, State 12345</li>
+                        <li><i class="fas fa-phone me-2"></i> (555) 123-4567</li>
+                        <li><i class="fas fa-envelope me-2"></i> info@alisgrill.com</li>
+                        <li><i class="fas fa-clock me-2"></i> Mon-Fri: 11am-10pm</li>
+                        <li><i class="fas fa-clock me-2"></i> Sat-Sun: 10am-11pm</li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">Newsletter</h5>
+                    <p>Subscribe to our newsletter for special offers and updates.</p>
+                    <form class="mt-3">
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" placeholder="Your Email" required>
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="copyright text-center">
+                <p>&copy; 2023 Ali's Grill. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Updated Cart Modal with Payment Options -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Your Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cart-items">
+                                <!-- Cart items will be loaded here -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                                    <td id="cart-subtotal">$0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">Tax (8%):</td>
+                                    <td id="cart-tax">$0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">Total:</td>
+                                    <td id="cart-total">$0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continue Shopping</button>
+                    <button type="button" class="btn btn-primary" id="proceed-to-checkout">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">My Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="profile-form">
+                        <div class="mb-3">
+                            <label for="profile-name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="profile-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="profile-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile-phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="profile-phone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile-address" class="form-label">Address</label>
+                            <textarea class="form-control" id="profile-address" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile-password" class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" class="form-control" id="profile-password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile-confirm-password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="profile-confirm-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Global variables
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let currentUser = null;
+        let darkMode = localStorage.getItem('darkMode') === 'true';
+        let activeOrder = null;
+        let orderTimer = null;
+        let orderProgress = 0;
+
+        // Initialize the application
+        $(document).ready(function() {
+            // Apply dark mode if enabled
+            applyDarkMode(darkMode);
+            
+            // Load current user data
+            loadCurrentUser();
+            
+            // Set up event listeners
+            setupEventListeners();
+
+            // Load cart from localStorage
+            cart = JSON.parse(localStorage.getItem('cart')) || [];
+            updateCartCount(); // Initialize the cart count display
+
+            // Handle initial page load
+            const path = window.location.pathname;
+            
+            if (path.includes('/reservations')) {
+                showPage('reservations');
+            } else if (path.includes('/orders')) {
+                showPage('orders');
+            } else if (path.includes('/checkout')) {
+                showPage('checkout');
+            } else {
+                showPage('home');
+            }
+
+            // Check auth state from localStorage first
+            if (localStorage.getItem('userAuthenticated')) {
+                loadCurrentUser();
+            }
+
+            // Load reservations and orders if logged in
+            if (currentUser) {
+                loadReservations();
+                loadOrders();
+            }
+
+            if (window.location.pathname === '/guest/dashboard') {
+                loadMenuItems();
+                loadOffers();
+                loadLocations();
+            }
+
+            // Handle initial page load
+            handleNavigation();
+
+            // Set up navigation handler for back/forward buttons
+            window.addEventListener('popstate', function() {
+                handleNavigation();
+            });
+        });
+
+        // Set up CSRF token for AJAX requests
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                    xhr.setRequestHeader("X-CSRFToken", $('meta[name="csrf-token"]').attr('content'));
+                }
+            }
+        });
+
+        // Update the dropdown menu click handlers
+        $(document).on('click', 'a[href="/guest/dashboard/reservations"]', function(e) {
+            e.preventDefault();
+            showPage('reservations');
+        });
+
+        $(document).on('click', 'a[href="/guest/dashboard/orders"]', function(e) {
+            e.preventDefault();
+            showPage('orders');
+        });
+
+        $(document).on('click', '#checkout-link', function(e) {
+            e.preventDefault();
+            
+            // If cart is empty, show empty cart modal
+            if (cart.length === 0) {
+                showCartModal();
+                return;
+            }
+            
+            // Proceed to checkout whether logged in or not
+            showPage('checkout');
+        });
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            localStorage.setItem('darkMode', darkMode);
+            applyDarkMode(darkMode);
+        }
+
+        // Apply dark mode styles
+        function applyDarkMode(enabled) {
+            if (enabled) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                $('.theme-toggle i').removeClass('fa-moon').addClass('fa-sun');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                $('.theme-toggle i').removeClass('fa-sun').addClass('fa-moon');
+            }
+        }
+
+        function loadCurrentUser() {
+            $.ajax({
+                url: '/api/profile',
+                method: 'GET',
+                success: function(response) {
+                    currentUser = response;
+                    localStorage.setItem('userAuthenticated', 'true');
+                    updateAuthUI(true);
+                    
+                    // If on reservations/orders page, load data
+                    if (window.location.pathname.includes('/reservations')) {
+                        loadReservations();
+                    } else if (window.location.pathname.includes('/orders')) {
+                        loadOrders();
+                    }
+                },
+                error: function(xhr) {
+                    currentUser = null;
+                    localStorage.removeItem('userAuthenticated');
+                    updateAuthUI(false);
+                }
+            });
+        }
+
+        // Handle logout link click
+        $(document).on('click', 'a[href="/logout"]', function(e) {
+            e.preventDefault();
+
+            // Clear the cart before logging out
+            cart = [];
+            localStorage.removeItem('cart');
+            updateCartCount();
+
+            $.ajax({
+                url: '/logout',
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    } else {
+                        window.location.reload();
+                    }
+                },
+                error: function(xhr) {
+                    // Fallback to direct navigation if AJAX fails
+                    window.location.href = '/logout';
+                }
+            });
+        });
+
+        // Update UI based on authentication state
+        function updateAuthUI(isAuthenticated) {
+            const dropdownMenu = $('#profile-dropdown-menu');
+            const profileButtonText = $('#profile-button-text');
+            
+            dropdownMenu.empty();
+            
+            // Add theme toggle to dropdown
+            dropdownMenu.append(`
+                <li class="theme-toggle">
+                    <i class="fas ${darkMode ? 'fa-sun' : 'fa-moon'}"></i>
+                    <span>${darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" ${darkMode ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            `);
+            
+            if (isAuthenticated) {
+                profileButtonText.text(currentUser.username || 'Profile');
+                dropdownMenu.append(`
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                        <i class="fas fa-user-circle me-2"></i>My Profile
+                    </a></li>
+                    <li><a class="dropdown-item" href="/guest/dashboard/orders">
+                        <i class="fas fa-clipboard-list me-2"></i>My Orders
+                    </a></li>
+                    <li><a class="dropdown-item" href="/guest/dashboard/reservations">
+                        <i class="fas fa-calendar-alt me-2"></i>My Reservations
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a></li>
+                `);
+            } else {
+                profileButtonText.text('Profile');
+                dropdownMenu.append(`
+                    <li><a class="dropdown-item" href="/login">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a></li>
+                    <li><a class="dropdown-item" href="/signup">
+                        <i class="fas fa-user-plus me-2"></i>Sign Up
+                    </a></li>
+                `);
+            }
+            
+            // Add event listener for theme toggle
+            $('.theme-toggle input').change(toggleDarkMode);
+        }
+
+        // Update profile form with user data
+        function updateProfileForm(user) {
+            $('#profile-name').val(user.username || '');
+            $('#profile-email').val(user.email || '');
+            // Additional fields would be populated here if available
+        }
+
+        // Load user reservations
+        function loadReservations() {
+            if (!currentUser) {
+                $('#reservations-container').html(`
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-user-lock fa-3x mb-3 text-muted"></i>
+                                <h5>Please log in to view your reservations</h5>
+                                <a href="/login" class="btn btn-primary">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                return;
+            }
+            
+            $.ajax({
+                url: '/api/reservations',
+                method: 'GET',
+                success: function(response) {
+                    // Filter reservations to only show those belonging to the current user
+                    const userReservations = response.filter(reservation => 
+                        reservation.user_id === currentUser.id
+                    );
+                    
+                    if (userReservations && userReservations.length > 0) {
+                        renderReservations(userReservations);
+                    } else {
+                        $('#reservations-container').html(`
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        <i class="fas fa-calendar-times fa-3x mb-3 text-muted"></i>
+                                        <h5>No Reservations Found</h5>
+                                        <p>You haven't made any reservations yet.</p>
+                                        <a href="#reservations" class="btn btn-primary">Make a Reservation</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                },
+                error: function() {
+                    $('#reservations-container').html(`
+                        <div class="col-12">
+                            <div class="alert alert-danger">Failed to load reservations. Please try again later.</div>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        // Add this function to load stores
+        function loadStores() {
+            $.ajax({
+                url: '/api/stores',
+                method: 'GET',
+                success: function(response) {
+                    const select = $('#reservation-store');
+                    select.empty();
+                    response.forEach(store => {
+                        select.append(`<option value="${store.id}">${store.name}</option>`);
+                    });
+                    // Trigger change to load tables for the first store
+                    if (response.length > 0) {
+                        select.trigger('change');
+                    }
+                },
+                error: function() {
+                    console.error('Failed to load stores');
+                }
+            });
+        }
+
+        // Add this function to load available tables for a store
+        function loadAvailableTables(storeId, partySize) {
+            const date = $('#reservation-date').val();
+            const time = $('#reservation-time').val();
+            
+            if (!date || !time) {
+                $('#reservation-table').html('<option value="">Please select date and time first</option>');
+                return;
+            }
+
+            $.ajax({
+                url: '/api/tables/available',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    store_id: storeId,
+                    party_size: partySize,
+                    date: date,
+                    time: time
+                }),
+                success: function(response) {
+                    const select = $('#reservation-table');
+                    select.empty();
+                    select.append('<option value="">Auto-assign (recommended)</option>');
+                    
+                    if (response.available_tables && response.available_tables.length > 0) {
+                        response.available_tables.forEach(table => {
+                            select.append(`<option value="${table.id}">Table ${table.table_number} (${table.capacity} seats) - Available</option>`);
+                        });
+                        $('#table-status-text').text(`${response.available_tables.length} tables available for your party size`);
+                    } else {
+                        select.append('<option value="" disabled>No tables available - please choose auto-assign</option>');
+                        $('#table-status-text').text('No tables available for your selected time - we will find the best option for you');
+                    }
+                },
+                error: function() {
+                    console.error('Failed to load available tables');
+                    $('#reservation-table').html('<option value="">Error loading tables - please choose auto-assign</option>');
+                }
+            });
+        }
+
+        // Render reservations
+        function renderReservations(reservations) {
+            const container = $('#reservations-container');
+            container.empty();
+
+            reservations.forEach(reservation => {
+                const reservationDate = new Date(reservation.date);
+                const formattedDate = reservationDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                const formattedTime = reservation.time; // Already in HH:MM format from API
+
+                container.append(`
+                    <div class="col-md-6 mb-4">
+                        <div class="card reservation-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">Reservation #${reservation.id}</h5>
+                                    <span class="badge ${getReservationStatusBadge(reservation.status)}">
+                                        ${formatReservationStatus(reservation.status)}
+                                    </span>
+                                </div>
+                                <div class="reservation-details">
+                                    <p class="mb-1"><i class="fas fa-user me-2"></i> ${reservation.name}</p>
+                                    <p class="mb-1"><i class="fas fa-calendar-day me-2"></i> ${formattedDate}</p>
+                                    <p class="mb-1"><i class="fas fa-clock me-2"></i> ${formattedTime}</p>
+                                    <p class="mb-1"><i class="fas fa-users me-2"></i> ${reservation.party_size} people</p>
+                                    <p class="mb-1"><i class="fas fa-store me-2"></i> ${reservation.store_name || 'Not specified'}</p>
+                                    <p class="mb-1"><i class="fas fa-table me-2"></i> ${reservation.table_number ? 'Table ' + reservation.table_number : 'Not assigned'}</p>
+                                    ${reservation.notes ? `<p class="mb-1"><i class="fas fa-sticky-note me-2"></i> ${reservation.notes}</p>` : ''}
+                                </div>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button class="btn btn-outline-danger btn-sm cancel-reservation" data-id="${reservation.id}">
+                                        <i class="fas fa-times me-1"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        // Helper function for reservation status badge
+        function getReservationStatusBadge(status) {
+            switch(status.toLowerCase()) {
+                case 'confirmed': return 'bg-success';
+                case 'pending': return 'bg-warning';
+                case 'cancelled': return 'bg-secondary';
+                default: return 'bg-info';
+            }
+        }
+
+        // Helper function to format reservation status
+        function formatReservationStatus(status) {
+            return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        }
+
+        // Load user orders
+        function loadOrders() {
+            if (!currentUser) {
+                $('#orders-container').html(`
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-user-lock fa-3x mb-3 text-muted"></i>
+                                <h5>Please log in to view your orders</h5>
+                                <a href="/login" class="btn btn-primary">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                return;
+            }
+            
+            $.ajax({
+                url: '/api/online/orders?user_id=' + currentUser.id,
+                method: 'GET',
+                success: function(response) {
+                    if (response && response.length > 0) {
+                        renderOrders(response);
+                    } else {
+                        $('#orders-container').html(`
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        <i class="fas fa-utensils fa-3x mb-3 text-muted"></i>
+                                        <h5>No Orders Found</h5>
+                                        <p>You haven't placed any orders yet.</p>
+                                        <a href="#menu" class="btn btn-primary">View Menu</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr) {
+                    $('#orders-container').html(`
+                        <div class="col-12">
+                            <div class="alert alert-danger">Failed to load orders. Please try again later.</div>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        // Render orders
+        function renderOrders(orders) {
+            const container = $('#orders-container');
+            container.empty();
+
+            if (!orders || orders.length === 0) {
+                container.append(`
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-utensils fa-3x mb-3 text-muted"></i>
+                                <h5>No Orders Found</h5>
+                                <p>You haven't placed any orders yet.</p>
+                                <a href="#menu" class="btn btn-primary">View Menu</a>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                return;
+            }
+
+            orders.forEach(order => {
+                const orderDate = new Date(order.created_at);
+                const formattedDate = orderDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const isDelivery = order.delivery_fee > 0;
+                
+                container.append(`
+                    <div class="col-md-6 mb-4">
+                        <div class="card order-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">Order #${order.order_number}</h5>
+                                    <span class="badge ${getOrderStatusBadgeClass(order.status)}">
+                                        ${formatOrderStatus(order.status)}
+                                    </span>
+                                </div>
+                                <div class="order-details mb-3">
+                                    <p class="mb-1"><i class="fas fa-clock me-2"></i> ${formattedDate}</p>
+                                    <p class="mb-1"><i class="fas fa-dollar-sign me-2"></i> $${order.total.toFixed(2)}</p>
+                                    <p class="mb-1"><i class="fas fa-${isDelivery ? 'truck' : 'store'} me-2"></i> ${isDelivery ? 'Delivery' : 'Pickup'}</p>
+                                    ${order.delivery_address ? `<p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i> ${order.delivery_address}</p>` : ''}
+                                </div>
+                                
+                                <div class="order-progress mb-3">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                            role="progressbar" 
+                                            style="width: ${getOrderProgress(order.status)}%" 
+                                            aria-valuenow="${getOrderProgress(order.status)}" 
+                                            aria-valuemin="0" 
+                                            aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1 small text-muted">
+                                        <span>Received</span>
+                                        <span>Preparing</span>
+                                        <span>${isDelivery ? 'On the way' : 'Ready'}</span>
+                                        <span>Completed</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-items">
+                                    <h6 class="mb-2">Items:</h6>
+                                    <ul class="list-group list-group-flush">
+                                        ${order.items.map(item => `
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span>${item.quantity}x ${item.name}</span>
+                                                <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        // Helper functions for order status
+        function getOrderStatusBadgeClass(status) {
+            switch(status) {
+                case 'pending': return 'bg-warning';
+                case 'processing': return 'bg-info';
+                case 'out_for_delivery': return 'bg-primary';
+                case 'completed': return 'bg-success';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function formatOrderStatus(status) {
+            return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function getOrderProgress(status) {
+            switch(status) {
+                case 'pending': return 25;
+                case 'processing': return 50;
+                case 'out_for_delivery': return 75;
+                case 'completed': return 100;
+                default: return 0;
+            }
+        }
+
+        // Start tracking an active order
+        function startOrderTracking(order) {
+            activeOrder = order;
+            orderProgress = getOrderProgress(order.status);
+            
+            // Simulate order progress (in a real app, this would be updated via websockets)
+            if (order.status !== 'completed') {
+                orderTimer = setInterval(() => {
+                    orderProgress += 5;
+                    if (orderProgress >= 100) {
+                        orderProgress = 100;
+                        clearInterval(orderTimer);
+                        activeOrder.status = 'completed';
+                    }
+                    
+                    // Update progress bar
+                    $('.progress-bar').css('width', orderProgress + '%').attr('aria-valuenow', orderProgress);
+                    
+                    // Update status if crossing thresholds
+                    if (orderProgress >= 75 && activeOrder.status === 'processing') {
+                        activeOrder.status = 'out_for_delivery';
+                        $('.order-card .badge').removeClass('bg-info').addClass('bg-primary').text('Out for Delivery');
+                    } else if (orderProgress >= 50 && activeOrder.status === 'pending') {
+                        activeOrder.status = 'processing';
+                        $('.order-card .badge').removeClass('bg-warning').addClass('bg-info').text('Processing');
+                    }
+                }, 30000); // Update every 30 seconds
+            }
+        }
+
+        // Cancel reservation
+        $(document).on('click', '.cancel-reservation', function() {
+            const reservationId = $(this).data('id');
+            if (confirm('Are you sure you want to cancel this reservation?')) {
+                $.ajax({
+                    url: '/api/reservations/' + reservationId,
+                    method: 'DELETE',
+                    success: function() {
+                        showAlert('success', 'Reservation cancelled successfully');
+                        loadReservations();
+                    },
+                    error: function(xhr) {
+                        showAlert('danger', xhr.responseJSON?.message || 'Failed to cancel reservation');
+                    }
+                });
+            }
+        });
+
+        // Reorder previous order
+        $(document).on('click', '.reorder-btn', function() {
+            const orderId = $(this).data('id');
+            $.ajax({
+                url: '/api/orders/' + orderId,
+                method: 'GET',
+                success: function(order) {
+                    // Clear current cart
+                    cart = [];
+                    
+                    // Add all items from previous order to cart
+                    order.items.forEach(item => {
+                        cart.push({
+                            id: item.product_id,
+                            name: item.product_name,
+                            price: item.price,
+                            quantity: item.quantity
+                        });
+                    });
+                    
+                    updateCartCount();
+                    showAlert('success', 'Previous order added to cart');
+                    showCartModal();
+                },
+                error: function() {
+                    showAlert('danger', 'Failed to load previous order');
+                }
+            });
+        });
+
+        // Load more orders
+        $(document).on('click', '#load-more-orders', function() {
+            // In a real app, you would fetch more orders from the server
+            $(this).remove();
+            // For demo purposes, we'll just show a message
+            $('#orders-container').append(`
+                <div class="col-12 text-center mt-3">
+                    <p>All orders loaded</p>
+                </div>
+            `);
+        });
+
+        // Call loadStores when the page loads
+        $(document).ready(function() {
+            loadStores();
+            generateTimeSlots();
+
+        $('#reservation-date').change(function() {
+            const storeId = $('#reservation-store').val();
+            const partySize = $('#reservation-party').val();
+            if (storeId && partySize) {
+                loadAvailableTables(storeId, partySize);
+            }
+        });
+        
+        // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            $('#reservation-date').attr('min', today);
+        });
+
+        // Update the reservation form submission
+        $('#reservation-form').submit(function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: $('#reservation-name').val(),
+                email: $('#reservation-email').val(),
+                phone: $('#reservation-phone').val(),
+                party_size: $('#reservation-party').val(),
+                store_id: $('#reservation-store').val(),
+                table_id: $('#reservation-table').val() || null,
+                date: $('#reservation-date').val(),
+                time: $('#reservation-time').val(),
+                notes: $('#reservation-notes').val()
+            };
+            
+            $.ajax({
+                url: '/api/reservations',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    $('#reservation-form')[0].reset();
+                    showAlert('success', 'Reservation booked successfully!');
+                    
+                    // If on reservations page, reload the list
+                    if (window.location.pathname.includes('/reservations')) {
+                        loadReservations();
+                    }
+                },
+                error: function(xhr) {
+                    showAlert('danger', xhr.responseJSON?.message || 'Failed to book reservation');
+                }
+            });
+        });
+
+        // Update the event listeners for form changes
+        $('#reservation-store, #reservation-party, #reservation-date, #reservation-time').change(function() {
+            const storeId = $('#reservation-store').val();
+            const partySize = $('#reservation-party').val();
+            
+            if (storeId && partySize) {
+                loadAvailableTables(storeId, partySize);
+            }
+        });
+
+        // Make reservation with confirmed availability
+        function makeReservation(formData) {
+            $.ajax({
+                url: '/api/reservations',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    $('#reservation-form')[0].reset();
+                    showAlert('success', 'Reservation booked successfully!');
+                    loadReservations();
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Failed to book reservation');
+                }
+            });
+        }
+
+        $(document).on('click', '.back-to-home', function(e) {
+            e.preventDefault();
+            showPage('home');
+            // Force a reload of the main content
+            loadMenuItems();
+            loadOffers();
+            loadLocations();
+        });
+
+        // Update checkout to handle payment method selection
+        $('#checkout-btn').click(function() {
+            const isDelivery = $('#deliveryOption').is(':checked');
+            const paymentMethod = $('input[name="paymentMethod"]:checked').val();
+            
+            if (!paymentMethod) {
+                showAlert('danger', 'Please select a payment method');
+                return;
+            }
+            
+            if (isDelivery && paymentMethod === 'cash') {
+                showAlert('danger', 'Cash payment not available for delivery. Please use card payment.');
+                return;
+            }
+            
+            const orderData = {
+                items: cart,
+                is_delivery: isDelivery,
+                delivery_address: isDelivery ? $('#deliveryAddress').val() : null,
+                payment_method: paymentMethod,
+                total: parseFloat($('#cart-total').text().replace('$', ''))
+            };
+            
+            $.ajax({
+                url: '/api/orders',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(orderData),
+                success: function(response) {
+                    $('#cartModal').modal('hide');
+                    cart = [];
+                    updateCartCount();
+                    showAlert('success', 'Order placed successfully!');
+                    loadOrders();
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Failed to place order');
+                }
+            });
+        });
+
+        // Update cart modal to show payment options
+        function showCartModal() {
+            const tbody = $('#cart-items');
+            tbody.empty();
+            
+            if (cart.length === 0) {
+                tbody.append('<tr><td colspan="5" class="text-center">Your cart is empty</td></tr>');
+                $('#checkout-btn').prop('disabled', true);
+            } else {
+                cart.forEach(item => {
+                    tbody.append(`
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>$${item.price.toFixed(2)}</td>
+                            <td>
+                                <div class="input-group" style="width: 120px;">
+                                    <button class="btn btn-outline-secondary decrease-qty" data-id="${item.id}" type="button">-</button>
+                                    <input type="text" class="form-control text-center qty-input" value="${item.quantity}" data-id="${item.id}" readonly>
+                                    <button class="btn btn-outline-secondary increase-qty" data-id="${item.id}" type="button">+</button>
+                                </div>
+                            </td>
+                            <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm remove-item" data-id="${item.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+                
+                $('#checkout-btn').prop('disabled', false);
+            }
+            
+            updateCartTotals();
+            
+            // Initialize cart item event listeners
+            $('.decrease-qty').click(function() {
+                const id = $(this).data('id');
+                updateCartItemQuantity(id, -1);
+            });
+            
+            $('.increase-qty').click(function() {
+                const id = $(this).data('id');
+                updateCartItemQuantity(id, 1);
+            });
+            
+            $('.remove-item').click(function() {
+                const id = $(this).data('id');
+                removeCartItem(id);
+            });
+            
+            // Show payment options
+            $('#payment-options').html(`
+                <div class="mb-3">
+                    <h6>Payment Method</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="cashOption" value="cash" ${$('#deliveryOption').is(':checked') ? 'disabled' : ''}>
+                        <label class="form-check-label" for="cashOption">
+                            <i class="fas fa-money-bill-wave me-2"></i> Cash on Collection
+                            ${$('#deliveryOption').is(':checked') ? '<span class="text-muted small">(Not available for delivery)</span>' : ''}
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="cardOption" value="card" checked>
+                        <label class="form-check-label" for="cardOption">
+                            <i class="fas fa-credit-card me-2"></i> Credit/Debit Card
+                        </label>
+                    </div>
+                </div>
+            `);
+            
+            $('#cartModal').modal('show');
+        }
+
+        function saveCartToStorage() {
+            try {
+                localStorage.setItem('cart', JSON.stringify(cart));
+            } catch (e) {
+                console.error('Failed to save cart to localStorage:', e);
+                // Optionally show an error to the user
+            }
+        }
+        // Then replace all localStorage.setItem('cart', ...) calls with saveCartToStorage()
+
+        // Update the handleNavigation function
+        function handleNavigation() {
+            const path = window.location.pathname;
+            
+            // Default to home if no matching path
+            let page = 'home';
+            
+            if (path.includes('/reservations')) {
+                page = 'reservations';
+            } else if (path.includes('/orders')) {
+                page = 'orders';
+            } else if (path.includes('/checkout')) {
+                page = 'checkout';
+            }
+            
+            showPage(page);
+        }
+
+        // Update the showPage function to handle initial load
+        $(document).on('click', '#checkout-btn', function(e) {
+            e.preventDefault();
+            if (cart.length > 0) {
+                showPage('checkout');
+            } else {
+                showAlert('danger', 'Your cart is empty');
+            }
+        });
+
+        // Update the showPage function to properly handle checkout
+        function showPage(page) {
+            // Hide all pages
+            $('#home-page, #reservations-page, #orders-page, #checkout-page').hide();
+            
+            // Show the requested page
+            const $page = $(`#${page}-page`);
+            $page.show();
+            
+            // Initialize specific page content
+            if (page === 'reservations') {
+                loadReservations();
+            } else if (page === 'orders') {
+                loadOrders();
+            } else if (page === 'checkout') {
+                initCheckout();
+            } else if (page === 'home') {
+                // Always reload home page content
+                loadMenuItems();
+                loadOffers();
+                loadLocations();
+            }
+
+            // Update browser history
+            if (page === 'home') {
+                history.pushState(null, '', '/guest/dashboard');
+            } else {
+                history.pushState(null, '', `/guest/dashboard/${page}`);
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function updateNavbarActiveState(page) {
+            // Remove active class from all nav items
+            $('.navbar-nav .nav-link').removeClass('active');
+            
+            // Add active class to the current page's nav item
+            if (page === 'home') {
+                $('.navbar-nav .nav-link[href="#home"]').addClass('active');
+            }
+            // Add similar logic for other pages if needed
+        }
+
+        function loadMenuItems() {
+            $.ajax({
+                url: '/api/products',
+                method: 'GET',
+                success: function(response) {
+                    renderMenuItems(response);
+                },
+                error: function(xhr) {
+                    console.error('Failed to load menu items');
+                    // Show error message to user
+                    $('#appetizers-container, #mains-container, #desserts-container, #drinks-container')
+                        .html('<div class="col-12"><div class="alert alert-danger">Failed to load menu items. Please try again later.</div></div>');
+                }
+            });
+        }
+
+        // Render menu items by category
+        function renderMenuItems(products) {
+            const appetizers = products.filter(p => p.category_id === 1);
+            const mains = products.filter(p => p.category_id === 2);
+            const desserts = products.filter(p => p.category_id === 3);
+            const drinks = products.filter(p => p.category_id === 4);
+
+            renderCategoryItems('appetizers-container', appetizers);
+            renderCategoryItems('mains-container', mains);
+            renderCategoryItems('desserts-container', desserts);
+            renderCategoryItems('drinks-container', drinks);
+        }
+
+        // Render items for a specific category
+        function renderCategoryItems(containerId, items) {
+            const container = $(`#${containerId}`);
+            container.empty();
+
+            if (!items || items.length === 0) {
+                container.append('<div class="col-12"><p>No items currently available in this category</p></div>');
+                return;
+            }
+
+            items.forEach((item, index) => {
+                container.append(`
+                    <div class="col-md-4 col-sm-6 animate-fadeIn delay-${index % 3 + 1}">
+                        <div class="menu-item-card">
+                            <img src="${item.image || 'https://via.placeholder.com/300x200?text=Food+Image'}" class="menu-item-img w-100" alt="${item.name}">
+                            <div class="menu-item-body">
+                                <h5 class="menu-item-title">${item.name}</h5>
+                                <p class="menu-item-price">$${item.price.toFixed(2)}</p>
+                                <p class="menu-item-desc">${item.description || ''}</p>
+                                <button class="btn btn-primary add-to-cart-btn" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                                    <i class="fas fa-plus me-1"></i> Add to Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        // Load offers
+        function loadOffers() {
+            $.ajax({
+                url: '/api/offers',
+                method: 'GET',
+                success: function(response) {
+                    renderOffers(response);
+                },
+                error: function(xhr) {
+                    console.error('Failed to load offers');
+                }
+            });
+        }
+
+        // Render offers
+        function renderOffers(offers) {
+            const container = $('#offers-container');
+            if (offers && offers.length > 0) {
+                container.empty();
+                offers.forEach(offer => {
+                    container.append(`
+                        <div class="col-md-4">
+                            <div class="offer-card">
+                                <div class="position-relative">
+                                    <img src="${offer.image || 'https://via.placeholder.com/300x200?text=Offer'}" class="offer-img w-100" alt="${offer.title}">
+                                    <div class="offer-badge">${offer.badge || 'Special'}</div>
+                                </div>
+                                <div class="offer-body">
+                                    <h5 class="offer-title">${offer.title}</h5>
+                                    <p class="offer-desc">${offer.description}</p>
+                                    <button class="btn btn-outline-primary">View Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+        }
+
+        // Load locations
+        function loadLocations() {
+            $.ajax({
+                url: '/api/stores',
+                method: 'GET',
+                success: function(response) {
+                    renderLocations(response);
+                },
+                error: function(xhr) {
+                    console.error('Failed to load locations');
+                    // For demo purposes, show some sample locations
+                    renderLocations([
+                        {
+                            id: 1,
+                            name: "Downtown Location",
+                            address: "123 Main St, City, State 12345",
+                            phone: "(555) 123-4567",
+                            image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+                        },
+                        {
+                            id: 2,
+                            name: "Uptown Location",
+                            address: "456 Elm St, City, State 12345",
+                            phone: "(555) 987-6543",
+                            image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+                        }
+                    ]);
+                }
+            });
+        }
+
+        // Render locations
+        function renderLocations(locations) {
+            const container = $('#locations-container');
+            container.empty();
+
+            if (locations.length === 0) {
+                container.append('<div class="col-12"><p>No locations found</p></div>');
+                return;
+            }
+
+            locations.forEach((location, index) => {
+                container.append(`
+                    <div class="col-md-6 animate-fadeIn delay-${index % 2 + 1}">
+                        <div class="location-card">
+                            <img src="${location.image || 'https://via.placeholder.com/300x200?text=Location'}" class="location-img w-100" alt="${location.name}">
+                            <div class="location-body">
+                                <h5 class="location-title">${location.name}</h5>
+                                <p class="location-address"><i class="fas fa-map-marker-alt me-2"></i>${location.address}</p>
+                                <p class="location-phone"><i class="fas fa-phone me-2"></i>${location.phone}</p>
+                                <button class="btn btn-outline-primary">View Details</button>
+                                <button class="btn btn-primary ms-2">Get Directions</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Add to cart buttons
+            $(document).on('click', '.add-to-cart-btn', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const price = $(this).data('price');
+                
+                addToCart(id, name, price);
+            });
+            
+            // Cart icon click
+            $('.cart-icon').click(function(e) {
+                e.preventDefault();
+                showCartModal();
+            });
+
+            // cart icon click to show checkout page
+            $(document).on('click', '.cart-icon', function(e) {
+                e.preventDefault();
+                showCartModal(); // Always show the cart modal first
+            });
+            
+            // Delivery options
+            $('input[name="deliveryOption"]').change(function() {
+                if ($('#deliveryOption').is(':checked')) {
+                    $('#deliveryAddressGroup').show();
+                } else {
+                    $('#deliveryAddressGroup').hide();
+                }
+            });
+            
+            // Profile form submission
+            $('#profile-form').submit(function(e) {
+                e.preventDefault();
+                saveProfile();
+            });
+            
+            // Reservation form submission
+            $('#reservation-form').submit(function(e) {
+                e.preventDefault();
+                makeReservation();
+            });
+
+            $(document).on('click', '#proceed-to-checkout', function() {
+                $('#cartModal').modal('hide');
+                showPage('checkout');
+            });
+        }
+
+        // Add item to cart
+        function addToCart(id, name, price) {
+            // Check if item already in cart
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: id,
+                    name: name,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            
+            updateCartCount();
+            localStorage.setItem('cart', JSON.stringify(cart)); // Save to localStorage
+            showAlert('success', `${name} added to cart`);
+        }
+
+        // Update all cart modification functions to save to localStorage
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            $('.cart-count').text(count);
+        }
+
+        // Add this to clear cart when needed
+        function clearCart() {
+            cart = [];
+            localStorage.removeItem('cart');
+            updateCartCount();
+        }
+
+        // Show cart modal
+        function showCartModal() {
+            const tbody = $('#cart-items');
+            tbody.empty();
+            
+            if (cart.length === 0) {
+                tbody.append('<tr><td colspan="5" class="text-center">Your cart is empty</td></tr>');
+                $('#checkout-btn').prop('disabled', true);
+            } else {
+                cart.forEach(item => {
+                    tbody.append(`
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>$${item.price.toFixed(2)}</td>
+                            <td>
+                                <div class="input-group" style="width: 120px;">
+                                    <button class="btn btn-outline-secondary decrease-qty" data-id="${item.id}" type="button">-</button>
+                                    <input type="text" class="form-control text-center qty-input" value="${item.quantity}" data-id="${item.id}" readonly>
+                                    <button class="btn btn-outline-secondary increase-qty" data-id="${item.id}" type="button">+</button>
+                                </div>
+                            </td>
+                            <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm remove-item" data-id="${item.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+                
+                $('#checkout-btn').prop('disabled', false);
+            }
+            
+            updateCartTotals();
+            
+            // Initialize cart item event listeners
+            $('.decrease-qty').click(function() {
+                const id = $(this).data('id');
+                updateCartItemQuantity(id, -1);
+            });
+            
+            $('.increase-qty').click(function() {
+                const id = $(this).data('id');
+                updateCartItemQuantity(id, 1);
+            });
+            
+            $('.remove-item').click(function() {
+                const id = $(this).data('id');
+                removeCartItem(id);
+            });
+            
+            $('#cartModal').modal('show');
+        }
+
+        // Update cart item quantity
+        function updateCartItemQuantity(id, change) {
+            const item = cart.find(item => item.id === id);
+            
+            if (item) {
+                item.quantity += change;
+                
+                if (item.quantity <= 0) {
+                    cart = cart.filter(item => item.id !== id);
+                }
+                
+                updateCartCount();
+                localStorage.setItem('cart', JSON.stringify(cart)); // Save to localStorage
+                showCartModal();
+            }
+        }
+
+        // Remove item from cart
+        function removeCartItem(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartCount();
+            localStorage.setItem('cart', JSON.stringify(cart)); // Save to localStorage
+            showCartModal();
+        }
+
+        // Update cart totals
+        function updateCartTotals() {
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.08; // 8% tax
+            const total = subtotal + tax;
+            
+            $('#cart-subtotal').text('$' + subtotal.toFixed(2));
+            $('#cart-tax').text('$' + tax.toFixed(2));
+            $('#cart-total').text('$' + total.toFixed(2));
+        }
+
+        // Save profile
+        function saveProfile() {
+            const data = {
+                username: $('#profile-name').val(),
+                email: $('#profile-email').val(),
+                phone: $('#profile-phone').val(),
+                address: $('#profile-address').val(),
+                password: $('#profile-password').val() || undefined
+            };
+            
+            if (data.password && data.password !== $('#profile-confirm-password').val()) {
+                showAlert('danger', 'Passwords do not match');
+                return;
+            }
+            
+            $.ajax({
+                url: '/api/profile',
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    $('#profileModal').modal('hide');
+                    showAlert('success', 'Profile updated successfully');
+                    loadCurrentUser();
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Failed to update profile');
+                }
+            });
+        }
+
+        // Make reservation
+        function makeReservation() {
+            const data = {
+                name: $('#reservation-name').val(),
+                email: $('#reservation-email').val(),
+                phone: $('#reservation-phone').val(),
+                party_size: $('#reservation-party').val(),
+                date: $('#reservation-date').val(),
+                time: $('#reservation-time').val(),
+                notes: $('#reservation-notes').val()
+            };
+            
+            $.ajax({
+                url: '/api/reservations',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    $('#reservation-form')[0].reset();
+                    showAlert('success', 'Reservation booked successfully!');
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Failed to book reservation');
+                }
+            });
+        }
+
+        // Checkout
+        function checkout() {
+            const isDelivery = $('#deliveryOption').is(':checked');
+            const deliveryAddress = $('#deliveryAddress').val();
+            
+            const orderData = {
+                items: cart,
+                is_delivery: isDelivery,
+                delivery_address: isDelivery ? deliveryAddress : null,
+                total: parseFloat($('#cart-total').text().replace('$', ''))
+            };
+            
+            $.ajax({
+                url: '/api/orders',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(orderData),
+                success: function(response) {
+                    $('#cartModal').modal('hide');
+                    cart = [];
+                    updateCartCount();
+                    showAlert('success', 'Order placed successfully!');
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Failed to place order');
+                }
+            });
+        }
+
+        function initCheckout() {
+            // Show login prompt for order history if not logged in
+            if (!currentUser && window.location.pathname.includes('/orders')) {
+                $('#orders-container').html(`
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-user-lock fa-3x mb-3 text-muted"></i>
+                                <h5>Please log in to view your order history</h5>
+                                <a href="/login" class="btn btn-primary">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                return;
+            }
+
+            // Render checkout steps
+            $('#checkout-steps').html(`
+                <ul class="nav nav-pills nav-fill mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="step-delivery-tab" data-bs-toggle="pill" href="#step-delivery">
+                            <i class="fas fa-truck me-2"></i> Delivery Method
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" id="step-payment-tab">
+                            <i class="fas fa-credit-card me-2"></i> Payment
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" id="step-confirm-tab">
+                            <i class="fas fa-check-circle me-2"></i> Confirm
+                        </a>
+                    </li>
+                </ul>
+            `);
+
+            // Allow guest checkout
+            $('#checkout-form').html(`
+                <div class="mb-4">
+                    <h5>${currentUser ? 'Checkout' : 'Guest Checkout'}</h5>
+                    ${!currentUser ? `
+                    <div class="alert alert-info mb-3">
+                        <p>You're checking out as a guest. <a href="/login">Login</a> to save your order history.</p>
+                    </div>
+                    ` : ''}
+                    <!-- Rest of your checkout form -->
+                </div>
+            `);
+            
+            // Render delivery options
+            $('#checkout-form').html(`
+                <div class="mb-4">
+                    <h5>Choose Delivery Method</h5>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="deliveryMethod" id="pickupMethod" checked>
+                        <label class="form-check-label" for="pickupMethod">
+                            <strong>Pickup</strong> - Free
+                        </label>
+                        <p class="small text-muted mt-1">Collect your order from our restaurant</p>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="deliveryMethod" id="deliveryMethod">
+                        <label class="form-check-label" for="deliveryMethod">
+                            <strong>Delivery</strong> - $5.00
+                        </label>
+                        <p class="small text-muted mt-1">We'll deliver to your address</p>
+                    </div>
+                </div>
+                <div id="delivery-address-fields" style="display: none;">
+                    <div class="mb-3">
+                        <label for="delivery-address" class="form-label">Delivery Address</label>
+                        <textarea class="form-control" id="delivery-address" rows="3" required></textarea>
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" id="continue-to-payment">Continue to Payment</button>
+            `);
+            
+            // Update order summary
+            updateOrderSummary();
+            
+            // Event listeners for delivery method
+            $('input[name="deliveryMethod"]').change(function() {
+                if ($('#deliveryMethod').is(':checked')) {
+                    $('#delivery-address-fields').show();
+                    $('#order-delivery').text('$5.00');
+                } else {
+                    $('#delivery-address-fields').hide();
+                    $('#order-delivery').text('$0.00');
+                }
+                updateOrderSummary();
+            });
+            
+            // Continue to payment
+            $('#continue-to-payment').click(function() {
+                if ($('#deliveryMethod').is(':checked') && !$('#delivery-address').val()) {
+                    showAlert('danger', 'Please enter delivery address');
+                    return;
+                }
+                
+                renderPaymentStep();
+            });
+            
+            // Apply coupon
+            $('#apply-coupon').click(applyCoupon);
+        }
+
+        function renderPaymentStep() {
+            // Update steps
+            $('#step-delivery-tab').removeClass('active').addClass('text-success');
+            $('#step-payment-tab').removeClass('disabled').addClass('active');
+            
+            // Render payment options
+            $('#checkout-form').html(`
+                <div class="mb-4">
+                    <h5>Payment Method</h5>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" checked>
+                        <label class="form-check-label" for="cardPayment">
+                            <i class="fab fa-cc-visa me-2"></i> Credit/Debit Card
+                        </label>
+                    </div>
+                    <div id="card-fields">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="card-number" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="card-number" placeholder="1234 5678 9012 3456">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="card-expiry" class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" id="card-expiry" placeholder="MM/YY">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="card-cvc" class="form-label">CVC</label>
+                                <input type="text" class="form-control" id="card-cvc" placeholder="123">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="card-name" class="form-label">Name on Card</label>
+                                <input type="text" class="form-control" id="card-name" placeholder="John Doe">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="cashPayment">
+                        <label class="form-check-label" for="cashPayment">
+                            <i class="fas fa-money-bill-wave me-2"></i> Cash on Collection
+                        </label>
+                        <p class="small text-muted mt-1">Only available for pickup orders</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-outline-secondary" id="back-to-delivery">
+                        <i class="fas fa-arrow-left me-2"></i> Back
+                    </button>
+                    <button class="btn btn-primary" id="continue-to-confirm">
+                        Continue to Confirmation
+                    </button>
+                </div>
+            `);
+            
+            // Disable cash payment if delivery
+            if ($('#deliveryMethod').is(':checked')) {
+                $('#cashPayment').prop('disabled', true);
+            }
+            
+            // Back button
+            $('#back-to-delivery').click(initCheckout);
+            
+            // Continue to confirmation
+            $('#continue-to-confirm').click(function() {
+                if ($('#cardPayment').is(':checked')) {
+                    // Validate card fields
+                    if (!$('#card-number').val() || !$('#card-expiry').val() || !$('#card-cvc').val() || !$('#card-name').val()) {
+                        showAlert('danger', 'Please fill all card details');
+                        return;
+                    }
+                }
+                
+                renderConfirmationStep();
+            });
+        }
+
+        function renderConfirmationStep() {
+            // Update steps
+            $('#step-payment-tab').removeClass('active').addClass('text-success');
+            $('#step-confirm-tab').removeClass('disabled').addClass('active');
+            
+            // Render confirmation
+            $('#checkout-form').html(`
+                <div class="mb-4">
+                    <h5>Order Confirmation</h5>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Delivery Method</h6>
+                            <p id="confirm-delivery-method">${$('#deliveryMethod').is(':checked') ? 'Delivery' : 'Pickup'}</p>
+                            ${$('#deliveryMethod').is(':checked') ? `<p id="confirm-delivery-address">${$('#delivery-address').val()}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Payment Method</h6>
+                            <p id="confirm-payment-method">${$('#cardPayment').is(':checked') ? 'Credit/Debit Card' : 'Cash on Collection'}</p>
+                        </div>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control" placeholder="Leave a comment here" id="order-notes" style="height: 100px"></textarea>
+                        <label for="order-notes">Special Instructions</label>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-outline-secondary" id="back-to-payment">
+                        <i class="fas fa-arrow-left me-2"></i> Back
+                    </button>
+                    <button class="btn btn-success" id="place-order">
+                        <i class="fas fa-check-circle me-2"></i> Place Order
+                    </button>
+                </div>
+            `);
+            
+            // Back button
+            $('#back-to-payment').click(renderPaymentStep);
+            
+            // Place order
+            $('#place-order').click(placeOrder);
+        }
+
+        function updateOrderSummary() {
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const deliveryFee = $('#deliveryMethod').is(':checked') ? 5.00 : 0.00;
+            
+            // Get discount (make sure it's treated as a positive number)
+            const discountText = $('#order-discount').text().replace('$', '').replace('-', '');
+            const discount = parseFloat(discountText) || 0.00;
+            
+            const tax = (subtotal + deliveryFee - discount) * 0.08; // 8% tax
+            const total = subtotal + deliveryFee + tax - discount;
+            
+            $('#order-subtotal').text('$' + subtotal.toFixed(2));
+            $('#order-delivery').text('$' + deliveryFee.toFixed(2));
+            $('#order-tax').text('$' + tax.toFixed(2));
+            $('#order-total').text('$' + total.toFixed(2));
+        }
+
+        function applyCoupon() {
+            const code = $('#coupon-code').val().trim();
+            const subtotalText = $('#order-subtotal').text().replace('$', '').replace(',', '');
+            const subtotal = parseFloat(subtotalText);
+            
+            if (!code) {
+                $('#coupon-message').html('<span class="text-danger">Please enter a coupon code</span>');
+                return;
+            }
+            
+            // Show loading state
+            $('#apply-coupon').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Applying');
+            
+            $.ajax({
+                url: '/api/online/coupons/validate',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    code: code,
+                    subtotal: subtotal
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        // Display discount as negative (already handled in backend)
+                        $('#order-discount').text('-$' + response.discount.toFixed(2));
+                        updateOrderSummary();
+                        $('#coupon-message').html(`<span class="text-success">${response.message}</span>`);
+                        
+                        // Disable the input and button after successful application
+                        $('#coupon-code').prop('disabled', true);
+                        $('#apply-coupon').prop('disabled', true).text('Applied');
+                    } else {
+                        $('#coupon-message').html(`<span class="text-danger">${response.message}</span>`);
+                        $('#apply-coupon').prop('disabled', false).text('Apply');
+                    }
+                },
+                error: function(xhr) {
+                    let message = 'Failed to validate coupon';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    $('#coupon-message').html(`<span class="text-danger">${message}</span>`);
+                    $('#apply-coupon').prop('disabled', false).text('Apply');
+                }
+            });
+        }
+
+        function placeOrder() {
+            const isDelivery = $('#deliveryMethod').is(':checked');
+            const paymentMethod = $('#cardPayment').is(':checked') ? 'card' : 'cash';
+            const subtotal = parseFloat($('#order-subtotal').text().replace('$', ''));
+            const deliveryFee = isDelivery ? 5.00 : 0.00;
+            const discount = parseFloat($('#order-discount').text().replace('$', '')) || 0.00;
+            const tax = parseFloat($('#order-tax').text().replace('$', ''));
+            const total = parseFloat($('#order-total').text().replace('$', ''));
+            const notes = $('#order-notes').val();
+            
+            const orderData = {
+                items: cart.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity
+                })),
+                subtotal: subtotal,
+                tax: tax,
+                delivery_fee: deliveryFee,
+                discount: discount,
+                total: total,
+                payment_method: paymentMethod,
+                delivery_address: isDelivery ? $('#delivery-address').val() : null,
+                notes: notes
+            };
+            
+            $.ajax({
+                url: '/api/online/checkout',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(orderData),
+                success: function(response) {
+                    if (response.success) {
+                        // Clear cart
+                        cart = [];
+                        localStorage.removeItem('cart'); // Clear from storage
+                        updateCartCount();
+                        
+                        // Show success message
+                        $('#checkout-page').html(`
+                            <div class="container py-5">
+                                <div class="card text-center">
+                                    <div class="card-body py-5">
+                                        <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                                        <h2 class="mb-3">Order Placed Successfully!</h2>
+                                        <p class="lead mb-4">Your order number is <strong>${response.order_number}</strong></p>
+                                        <p>We'll ${isDelivery ? 'deliver your order soon' : 'have your order ready for pickup soon'}.</p>
+                                        <div class="mt-4">
+                                            <a href="/guest/dashboard/orders" class="btn btn-primary me-2">View Orders</a>
+                                            <a href="/guest/dashboard" class="btn btn-outline-secondary">Back to Home</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        showAlert('danger', 'Failed to place order: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Failed to place order. Please try again.');
+                }
+            });
+        }
+
+        function generateTimeSlots() {
+            const timeSelect = $('#reservation-time');
+            timeSelect.empty();
+            
+            // Restaurant opening hours (adjust as needed)
+            const openingHour = 11; // 11 AM
+            const closingHour = 22; // 10 PM
+            
+            for (let hour = openingHour; hour < closingHour; hour++) {
+                for (let minute = 0; minute < 60; minute += 30) {
+                    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    timeSelect.append(`<option value="${timeString}">${timeString}</option>`);
+                }
+            }
+        }
+
+        // Show alert message
+        function showAlert(type, message) {
+            const alertDiv = $(`<div class="alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`);
+            
+            $('body').append(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.alert('close');
+            }, 5000);
+        }
+
+        // Smooth scrolling for anchor links
+        $('a[href^="#"]').on('click', function(e) {
+            e.preventDefault();
+            
+            const target = $(this.getAttribute('href'));
+            if (target.length) {
+                $('html, body').stop().animate({
+                    scrollTop: target.offset().top - 70
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
