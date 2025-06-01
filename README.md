@@ -73,8 +73,15 @@ Optimized for in-restaurant use with tablets.
 ```
 FINAL-WORK/
 ├── __pycache__/
+│
+├── images/
+│   ├── admin.png
+│   ├── guest.png 
+│   └── staff.png
+│
 ├── Instance/
 │   └── restaurant.db             # SQLite database
+│
 ├── migrations/
 │   ├── __pycache__/
 │   └── versions/                 # Alembic migrations
